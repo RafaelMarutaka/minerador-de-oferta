@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minerador de Oferta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f6f5f2; --surface: #ffffff; --surface-2: #f0eee9; --border: #e3e0d8; --text: #1c1b19; --muted: #6b6860;
+  --accent: #e8590c; --accent-soft: #fff1e6; --green: #2b8a3e; --green-soft: #e6f4ea; --blue: #1c7ed6; --blue-soft: #e7f1fb;
+  --red: #c92a2a; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04); --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121211; --surface: #1b1b19; --surface-2: #242421; --border: #2f2f2b; --text: #f1efe9; --muted: #9c998f;
+    --accent: #ff8a3d; --accent-soft: #2d1d11; --green: #69db7c; --green-soft: #142a19; --blue: #74c0fc; --blue-soft: #10222f;
+    --red: #ff8787; --shadow: 0 1px 2px rgba(0,0,0,.3);
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; }
+a.btn { text-decoration: none; }
+.topo { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.topo-in { max-width: 1320px; margin: 0 auto; padding: 14px 20px 0; }
+.linha1 { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.marca { font-weight: 700; font-size: 19px; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.stats { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--muted); }
+.stat b { color: var(--text); font-weight: 600; }
+.btn { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--muted); }
+.btn.prim { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.prim:hover { filter: brightness(1.05); }
+.btn.peq { padding: 5px 10px; font-size: 13px; border-radius: 8px; }
+.btn:disabled { opacity: .6; cursor: default; }
+.abas { display: flex; gap: 4px; margin-top: 12px; overflow-x: auto; }
+.aba { border: 0; background: none; padding: 10px 14px; cursor: pointer; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; white-space: nowrap; }
+.aba[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+main { max-width: 1320px; margin: 0 auto; padding: 20px; }
+.filtros { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+.filtros input[type=search], .filtros select, .campo { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; min-height: 38px; }
+.filtros input[type=search] { flex: 1 1 220px; min-width: 180px; }
+.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); padding: 0 6px; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+.midia { position: relative; aspect-ratio: 4 / 5; background: var(--surface-2); display: grid; place-items: center; overflow: hidden; }
+.midia img, .midia video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.midia .play { position: absolute; inset: auto auto 12px 12px; background: rgba(0,0,0,.65); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+.midia .vazio { color: var(--muted); font-size: 13px; padding: 20px; text-align: center; }
+.forca { position: absolute; top: 10px; right: 10px; background: var(--accent); color: #fff; border-radius: 999px; padding: 3px 10px; font-weight: 700; font-size: 13px; }
+.corpo { padding: 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.pag { font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-size: 15px; }
+.pag:hover { text-decoration: underline; }
+.selos { display: flex; flex-wrap: wrap; gap: 6px; }
+.selo { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.selo.quente { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.selo.verde { background: var(--green-soft); color: var(--green); font-weight: 600; }
+.selo.azul { background: var(--blue-soft); color: var(--blue); }
+.copy { font-size: 14px; color: var(--text); white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.copy.aberta { -webkit-line-clamp: unset; }
+.mais { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0; font-size: 13px; text-align: left; }
+.termos { display: flex; gap: 4px; flex-wrap: wrap; }
+.termo { font-size: 11px; color: var(--muted); border: 1px dashed var(--border); border-radius: 6px; padding: 1px 6px; }
+.acoes { display: flex; gap: 6px; margin-top: auto; flex-wrap: wrap; }
+.salvo { color: var(--accent); border-color: var(--accent); }
+.lista { display: flex; flex-direction: column; gap: 10px; }
+.linha { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.linha .pos { width: 28px; color: var(--muted); font-weight: 600; text-align: right; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); object-fit: cover; flex: none; }
+.linha .nome { flex: 1 1 200px; min-width: 0; }
+.linha .nome small { display: block; color: var(--muted); }
+.cresc { font-weight: 700; color: var(--green); min-width: 90px; }
+.cresc.zero { color: var(--muted); font-weight: 500; }
+.vazio-g { text-align: center; color: var(--muted); padding: 60px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
+.vazio-g h3 { color: var(--text); margin: 0 0 6px; }
+.form-busca { display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
+.form-busca input { flex: 1 1 200px; }
+.interruptor { position: relative; width: 40px; height: 22px; background: var(--border); border-radius: 999px; border: 0; cursor: pointer; flex: none; }
+.interruptor::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.interruptor[aria-checked="true"] { background: var(--green); }
+.interruptor[aria-checked="true"]::after { transform: translateX(18px); }
+.fundo { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; z-index: 50; padding: 30px 16px; overflow-y: auto; }
+.fundo.aberto { display: block; }
+.modal { max-width: 1100px; margin: 0 auto; background: var(--bg); border-radius: 18px; padding: 22px; border: 1px solid var(--border); }
+.modal-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.modal-topo h2 { margin: 0; font-size: 20px; flex: 1; }
+.grafico { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 18px; }
+.grafico svg { width: 100%; height: 140px; display: block; }
+.aviso { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 60; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; }
+.aviso.on { opacity: 1; }
+.carregando { color: var(--muted); padding: 40px; text-align: center; }
+textarea.nota { width: 100%; min-height: 60px; resize: vertical; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 13px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 640px) { .stats { margin-left: 0; } main { padding: 14px; } .topo { position: static; } }
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="topo-in">
+    <div class="linha1">
+      <div class="marca"><span aria-hidden="true">⛏️</span> Minerador de Oferta</div>
+      <div class="stats" id="stats"></div>
+      <button class="btn prim" id="btn-coletar">Coletar agora</button>
+    </div>
+    <nav class="abas" role="tablist">
+      <button class="aba" role="tab" data-aba="ofertas" aria-selected="true">🔥 Ofertas</button>
+      <button class="aba" role="tab" data-aba="crescendo" aria-selected="false">📈 Crescendo</button>
+      <button class="aba" role="tab" data-aba="novidades" aria-selected="false">🆕 Páginas novas</button>
+      <button class="aba" role="tab" data-aba="salvos" aria-selected="false">⭐ Salvos</button>
+      <button class="aba" role="tab" data-aba="buscas" aria-selected="false">🔎 Palavras</button>
+    </nav>
+  </div>
+</header>
+
+<main id="conteudo"></main>
+
+<div class="fundo" id="fundo" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="aviso" id="aviso" role="status"></div>
+
+<script>
+const PAISES = { BR: "Brasil", MX: "México", AR: "Argentina", CO: "Colômbia", CL: "Chile", PE: "Peru", EC: "Equador", US: "EUA", ES: "Espanha", PT: "Portugal", UY: "Uruguai", PY: "Paraguai", BO: "Bolívia", GT: "Guatemala", DO: "Rep. Dominicana", CR: "Costa Rica", PA: "Panamá", VE: "Venezuela" };
+const estado = { aba: "ofertas", filtros: { q: "", termo: "", nicho: "", pais: "", destino: "", formato: "", min_dias: "", ordem: "forca", agora: "1" }, opcoes: null, janela: 7 };
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (n) => Number(n ?? 0).toLocaleString("pt-BR");
+const urlSegura = (u) => (/^https?:\/\//i.test(String(u ?? "")) ? String(u) : "");
+
+async function api(caminho, opcoes = {}) {
+  const resp = await fetch(`/api/${caminho}`, {
+    method: opcoes.method ?? "GET",
+    headers: opcoes.body ? { "content-type": "application/json", "x-minerador": "1" } : (opcoes.method && opcoes.method !== "GET" ? { "x-minerador": "1" } : {}),
+    body: opcoes.body ? JSON.stringify(opcoes.body) : undefined,
+  });
+  const dados = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(dados.erro ?? "Algo deu errado.");
+  return dados;
+}
+
+let timerAviso;
+function avisar(texto) {
+  const el = $("#aviso");
+  el.textContent = texto;
+  el.classList.add("on");
+  clearTimeout(timerAviso);
+  timerAviso = setTimeout(() => el.classList.remove("on"), 3500);
+}
+
+function quando(iso) {
+  if (!iso) return "nunca";
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+async function carregarResumo() {
+  try {
+    const r = await api("resumo");
+    $("#stats").innerHTML = `
+      <span class="stat"><b>${num(r.buscas_ativas)}</b> palavras</span>
+      <span class="stat"><b>${num(r.paginas)}</b> páginas</span>
+      <span class="stat"><b>${num(r.anuncios)}</b> anúncios</span>
+      <span class="stat">última coleta: <b>${esc(quando(r.ultima_coleta?.terminada_em))}</b></span>`;
+    const btn = $("#btn-coletar");
+    btn.disabled = r.coletando;
+    btn.textContent = r.coletando ? "Coletando…" : "Coletar agora";
+    return r;
+  } catch (e) {
+    $("#stats").innerHTML = `<span class="stat" style="color:var(--red)">${esc(e.message)}</span>`;
+  }
+}
+
+$("#btn-coletar").addEventListener("click", async () => {
+  try {
+    await api("coletar", { method: "POST" });
+    avisar("Coleta começou. Leva alguns minutos por palavra; pode continuar usando o painel.");
+    carregarResumo();
+  } catch (e) { avisar(e.message); }
+});
+
+document.querySelectorAll(".aba").forEach((b) => b.addEventListener("click", () => trocarAba(b.dataset.aba)));
+function trocarAba(aba) {
+  estado.aba = aba;
+  if (location.hash !== `#${aba}`) history.replaceState(null, "", `#${aba}`);
+  document.querySelectorAll(".aba").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.aba === aba)));
+  ({ ofertas: telaOfertas, crescendo: telaCrescendo, novidades: telaNovidades, salvos: telaSalvos, buscas: telaBuscas })[aba]();
+}
+
+function selos(o) {
+  const s = [];
+  if (o.dias_no_ar != null) s.push(`<span class="selo ${o.dias_no_ar >= 60 ? "quente" : ""}">${num(o.dias_no_ar)} dias no ar</span>`);
+  if (o.copias > 1) s.push(`<span class="selo verde">${num(o.copias)} cópias do criativo</span>`);
+  if (o.anuncios_da_pagina > 1) s.push(`<span class="selo">${num(o.anuncios_da_pagina)} anúncios da página</span>`);
+  if (o.destino) s.push(`<span class="selo azul">→ ${esc(o.destino)}</span>`);
+  if (o.formato) s.push(`<span class="selo">${esc(o.formato)}</span>`);
+  if (o.pais) s.push(`<span class="selo">${esc(PAISES[o.pais] ?? o.pais)}</span>`);
+  if (o.botao) s.push(`<span class="selo">Botão: ${esc(o.botao)}</span>`);
+  return s.join("");
+}
+
+function cardOferta(o, comNota = false) {
+  const img = urlSegura(o.imagem_url);
+  const video = urlSegura(o.video_url);
+  const catalogo = /\{\{[^}]+\}\}/.test(o.copy ?? "");
+  const copy = catalogo ? "(anúncio de catálogo, a copy muda pra cada produto)" : (o.copy ?? o.titulo ?? "");
+  return `
+  <article class="card" data-id="${esc(o.library_id)}">
+    <div class="midia">
+      ${img ? `<img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'vazio',textContent:'Prévia expirada. Abra na Biblioteca.'}))">` : `<div class="vazio">Sem prévia</div>`}
+      ${video ? `<button class="play" data-video="${esc(video)}">▶ Ver vídeo</button>` : ""}
+      <span class="forca" title="Força da oferta: cópias do criativo, dias no ar e anúncios da página">🔥 ${esc(o.forca ?? 0)}</span>
+    </div>
+    <div class="corpo">
+      <button class="pag" data-pagina="${esc(o.page_id ?? "")}">${esc(o.pagina ?? "Página sem nome")}</button>
+      <div class="selos">${selos(o)}</div>
+      ${copy ? `<div class="copy">${esc(copy)}</div><button class="mais">ver tudo</button>` : ""}
+      ${o.termos?.length ? `<div class="termos">${o.termos.map((t) => `<span class="termo">${esc(t)}</span>`).join("")}</div>` : ""}
+      ${comNota ? `<textarea class="nota" placeholder="Anotação (ex.: modelar o gancho, testar no México…)">${esc(o.nota ?? "")}</textarea>` : ""}
+      <div class="acoes">
+        <button class="btn peq ${o.salvo ? "salvo" : ""}" data-salvar="${o.salvo ? "0" : "1"}">${o.salvo ? "★ Salvo" : "☆ Salvar"}</button>
+        ${urlSegura(o.link_biblioteca) ? `<a class="btn peq" href="${esc(o.link_biblioteca)}" target="_blank" rel="noopener noreferrer">Biblioteca ↗</a>` : ""}
+        ${urlSegura(o.link_url) ? `<a class="btn peq" href="${esc(o.link_url)}" target="_blank" rel="noopener noreferrer">Destino ↗</a>` : ""}
+      </div>
+    </div>
+  </article>`;
+}
+
+function ligarCards(raiz, aoMudar) {
+  raiz.querySelectorAll(".play").forEach((b) => b.addEventListener("click", () => {
+    const midia = b.closest(".midia");
+    const v = document.createElement("video");
+    v.src = b.dataset.video; v.controls = true; v.autoplay = true; v.playsInline = true;
+    v.onerror = () => { midia.innerHTML = '<div class="vazio">O link do vídeo expirou. Abra na Biblioteca pra assistir.</div>'; };
+    midia.querySelectorAll("img,.vazio").forEach((x) => x.remove());
+    b.remove();
+    midia.prepend(v);
+  }));
+  raiz.querySelectorAll(".mais").forEach((b) => {
+    const c = b.previousElementSibling;
+    if (c && c.scrollHeight <= c.clientHeight + 2) b.remove();
+  });
+  raiz.querySelectorAll(".mais").forEach((b) => b.addEventListener("click", () => {
+    const c = b.previousElementSibling; c.classList.toggle("aberta");
+    b.textContent = c.classList.contains("aberta") ? "ver menos" : "ver tudo";
+  }));
+  raiz.querySelectorAll(".pag").forEach((b) => b.addEventListener("click", () => b.dataset.pagina && abrirPagina(b.dataset.pagina)));
+  raiz.querySelectorAll("[data-salvar]").forEach((b) => b.addEventListener("click", async () => {
+    const id = b.closest(".card").dataset.id;
+    const salvo = b.dataset.salvar === "1";
+    b.disabled = true;
+    try {
+      const r = await api(`salvar/${encodeURIComponent(id)}`, { method: "POST", body: { salvo } });
+      b.dataset.salvar = salvo ? "0" : "1";
+      b.classList.toggle("salvo", salvo);
+      b.textContent = salvo ? "★ Salvo" : "☆ Salvar";
+      avisar(r.aviso ?? (r.arquivo ? `Salvo. Vídeo baixado em ${r.arquivo}` : salvo ? "Salvo." : "Removido dos salvos."));
+      aoMudar?.();
+    } catch (e) { avisar(e.message); } finally { b.disabled = false; }
+  }));
+  raiz.querySelectorAll("textarea.nota").forEach((t) => t.addEventListener("change", async () => {
+    const id = t.closest(".card").dataset.id;
+    try { await api(`salvar/${encodeURIComponent(id)}`, { method: "POST", body: { salvo: true, nota: t.value } }); avisar("Anotação salva."); }
+    catch (e) { avisar(e.message); }
+  }));
+}
+
+function vazioColeta() {
+  return `<div class="vazio-g"><h3>Ainda não tem anúncio por aqui</h3>
+    <p>Clique em <b>Coletar agora</b> lá em cima, ou rode <code>minerador coletar</code> no PowerShell.<br>Cada palavra leva de 30 segundos a 1 minuto.</p></div>`;
+}
+
+async function telaOfertas() {
+  const main = $("#conteudo");
+  if (!estado.opcoes) { try { estado.opcoes = await api("filtros"); } catch { estado.opcoes = { termos: [], nichos: [], paises: [] }; } }
+  const f = estado.filtros, op = estado.opcoes;
+  const sel = (nome, rotulo, itens, fmt = (x) => x) => `<select name="${nome}" aria-label="${rotulo}"><option value="">${rotulo}</option>${itens.map((i) => `<option value="${esc(i)}" ${f[nome] === i ? "selected" : ""}>${esc(fmt(i))}</option>`).join("")}</select>`;
+  main.innerHTML = `
+    <form class="filtros" id="filtros" onsubmit="return false">
+      <input type="search" name="q" placeholder="Procurar na copy ou no nome da página…" value="${esc(f.q)}" aria-label="Procurar">
+      ${sel("nicho", "Todos os nichos", op.nichos)}
+      ${sel("termo", "Todas as palavras", op.termos)}
+      ${sel("pais", "Todos os países", op.paises, (p) => PAISES[p] ?? p)}
+      <select name="destino" aria-label="Destino">
+        <option value="">Qualquer destino</option>
+        <option value="mensagem" ${f.destino === "mensagem" ? "selected" : ""}>WhatsApp / Direct</option>
+        <option value="site" ${f.destino === "site" ? "selected" : ""}>Página de vendas</option>
+      </select>
+      <select name="formato" aria-label="Formato">
+        <option value="">Qualquer formato</option>
+        ${["Vídeo", "Imagem", "Carrossel"].map((x) => `<option ${f.formato === x ? "selected" : ""}>${x}</option>`).join("")}
+      </select>
+      <select name="min_dias" aria-label="Tempo no ar">
+        <option value="">Qualquer tempo no ar</option>
+        ${[7, 30, 60, 90].map((d) => `<option value="${d}" ${f.min_dias === String(d) ? "selected" : ""}>${d}+ dias no ar</option>`).join("")}
+      </select>
+      <select name="ordem" aria-label="Ordem">
+        <option value="forca" ${f.ordem === "forca" ? "selected" : ""}>Mais fortes</option>
+        <option value="dias" ${f.ordem === "dias" ? "selected" : ""}>Mais tempo no ar</option>
+        <option value="copias" ${f.ordem === "copias" ? "selected" : ""}>Mais cópias</option>
+        <option value="novos" ${f.ordem === "novos" ? "selected" : ""}>Achados mais recentes</option>
+      </select>
+      <label class="chk"><input type="checkbox" name="agora" ${f.agora === "1" ? "checked" : ""}> só no ar agora</label>
+    </form>
+    <div id="resultado" class="carregando">Carregando…</div>`;
+
+  let debounce;
+  $("#filtros").addEventListener("input", (ev) => {
+    const form = ev.currentTarget;
+    for (const el of form.elements) if (el.name) f[el.name] = el.type === "checkbox" ? (el.checked ? "1" : "0") : el.value;
+    clearTimeout(debounce);
+    debounce = setTimeout(listarOfertas, ev.target.type === "search" ? 350 : 0);
+  });
+  listarOfertas();
+}
+
+async function listarOfertas() {
+  const alvo = $("#resultado");
+  if (!alvo) return;
+  const params = new URLSearchParams(Object.entries(estado.filtros).filter(([, v]) => v !== ""));
+  try {
+    const lista = await api(`ofertas?${params}`);
+    if (!lista.length) {
+      const temFiltro = Object.entries(estado.filtros).some(([k, v]) => v && !["ordem", "agora"].includes(k));
+      alvo.className = "";
+      alvo.innerHTML = temFiltro ? `<div class="vazio-g"><h3>Nada com esses filtros</h3><p>Tente tirar algum filtro.</p></div>` : vazioColeta();
+      return;
+    }
+    alvo.className = "grade";
+    alvo.innerHTML = lista.map((o) => cardOferta(o)).join("");
+    ligarCards(alvo);
+  } catch (e) { alvo.className = "vazio-g"; alvo.textContent = e.message; }
+}
+
+async function telaCrescendo() {
+  const main = $("#conteudo");
+  main.innerHTML = `<div class="filtros">
+      <label class="chk" for="janela">Crescimento nos últimos</label>
+      <select id="janela" class="campo">${[3, 7, 14, 30].map((d) => `<option value="${d}" ${estado.janela === d ? "selected" : ""}>${d} dias</option>`).join("")}</select>
+    </div><div id="lista" class="carregando">Carregando…</div>`;
+  $("#janela").addEventListener("change", (e) => { estado.janela = Number(e.target.value); telaCrescendo(); });
+  try {
+    const lista = await api(`crescendo?janela=${estado.janela}`);
+    const alvo = $("#lista");
+    if (!lista.length) { alvo.className = ""; alvo.innerHTML = vazioColeta(); return; }
+    alvo.className = "lista";
+    alvo.innerHTML = `<p class="chk" style="padding:0">Quantos anúncios cada página tinha nas suas buscas no começo do período e agora. Precisa de pelo menos duas coletas em dias diferentes pra mostrar crescimento.</p>` +
+      lista.map((p, i) => `
+      <div class="linha">
+        <span class="pos">${i + 1}</span>
+        ${urlSegura(p.foto_url) ? `<img class="avatar" src="${esc(p.foto_url)}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="avatar"></span>`}
+        <div class="nome"><b>${esc(p.nome ?? "Página sem nome")}</b><small>${num(p.anuncios_antes)} → ${num(p.anuncios_agora)} anúncios${p.mais_antigo_dias ? ` · o mais antigo com ${num(p.mais_antigo_dias)} dias no ar` : ""}</small></div>
+        <span class="cresc ${p.crescimento > 0 ? "" : "zero"}">${p.crescimento > 0 ? `+${num(p.crescimento)}` : p.crescimento < 0 ? num(p.crescimento) : "estável"}</span>
+        <button class="btn peq" data-pagina="${esc(p.page_id)}">Ver anúncios</button>
+      </div>`).join("");
+    alvo.querySelectorAll("[data-pagina]").forEach((b) => b.addEventListener("click", () => abrirPagina(b.dataset.pagina)));
+  } catch (e) { $("#lista").textContent = e.message; }
+}
+
+async function telaNovidades() {
+  const main = $("#conteudo");
+  main.innerHTML = `<div id="lista" class="carregando">Carregando…</div>`;
+  try {
+    const lista = await api("novidades");
+    const alvo = $("#lista");
+    if (!lista.length) { alvo.className = ""; alvo.innerHTML = `<div class="vazio-g"><h3>Nenhuma página nova nos últimos 3 dias</h3><p>As páginas que aparecerem pela primeira vez nas suas buscas vão surgir aqui.</p></div>`; return; }
+    alvo.className = "lista";
+    alvo.innerHTML = `<p class="chk" style="padding:0">Páginas que apareceram pela primeira vez nas suas buscas nos últimos 3 dias.</p>` +
+      lista.map((p) => `
+      <div class="linha">
+        ${urlSegura(p.foto_url) ? `<img class="avatar" src="${esc(p.foto_url)}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="avatar"></span>`}
+        <div class="nome"><b>${esc(p.nome ?? "Página sem nome")}</b><small>vista pela primeira vez em ${esc(quando(p.primeira_vez))}</small></div>
+        <button class="btn peq" data-pagina="${esc(p.page_id)}">Ver anúncios</button>
+      </div>`).join("");
+    alvo.querySelectorAll("[data-pagina]").forEach((b) => b.addEventListener("click", () => abrirPagina(b.dataset.pagina)));
+  } catch (e) { $("#lista").textContent = e.message; }
+}
+
+async function telaSalvos() {
+  const main = $("#conteudo");
+  main.innerHTML = `<div id="resultado" class="carregando">Carregando…</div>`;
+  try {
+    const lista = await api("ofertas?salvos=1&agora=0&ordem=novos&limite=200");
+    const alvo = $("#resultado");
+    if (!lista.length) { alvo.className = ""; alvo.innerHTML = `<div class="vazio-g"><h3>Nada salvo ainda</h3><p>Clique em <b>☆ Salvar</b> num anúncio pra montar seu swipe file. O vídeo é baixado pro seu PC na hora.</p></div>`; return; }
+    alvo.className = "grade";
+    alvo.innerHTML = lista.map((o) => cardOferta(o, true)).join("");
+    ligarCards(alvo, telaSalvos);
+  } catch (e) { $("#resultado").textContent = e.message; }
+}
+
+async function telaBuscas() {
+  const main = $("#conteudo");
+  main.innerHTML = `
+    <form class="form-busca" id="nova">
+      <input class="campo" name="termo" placeholder="Palavra pra minerar (ex.: moldes de crochê)" required aria-label="Palavra">
+      <select class="campo" name="pais" aria-label="País">${Object.entries(PAISES).map(([c, n]) => `<option value="${c}">${n}</option>`).join("")}</select>
+      <input class="campo" name="nicho" placeholder="Nicho (opcional)" aria-label="Nicho" style="flex:0 1 180px">
+      <button class="btn prim">Adicionar</button>
+    </form>
+    <div id="lista" class="carregando">Carregando…</div>`;
+  $("#nova").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(ev.currentTarget));
+    try { await api("buscas", { method: "POST", body: d }); estado.opcoes = null; avisar(`"${d.termo}" adicionada. Entra na próxima coleta.`); telaBuscas(); }
+    catch (e) { avisar(e.message); }
+  });
+  try {
+    const lista = await api("buscas");
+    const alvo = $("#lista");
+    alvo.className = "lista";
+    alvo.innerHTML = lista.map((b) => `
+      <div class="linha" data-id="${b.id}">
+        <button class="interruptor" role="switch" aria-checked="${b.ativa}" aria-label="Minerar ${esc(b.termo)}"></button>
+        <div class="nome"><b>${esc(b.termo)}</b><small>${esc(PAISES[b.pais] ?? b.pais)}${b.nicho ? ` · ${esc(b.nicho)}` : ""}${b.ativa ? "" : " · pausada"}</small></div>
+        <button class="btn peq" data-apagar>Remover</button>
+      </div>`).join("") || `<div class="vazio-g">Nenhuma palavra ainda.</div>`;
+    alvo.querySelectorAll(".interruptor").forEach((s) => s.addEventListener("click", async () => {
+      const id = s.closest(".linha").dataset.id;
+      const ativa = s.getAttribute("aria-checked") !== "true";
+      try { await api(`buscas/${id}`, { method: "PATCH", body: { ativa } }); s.setAttribute("aria-checked", String(ativa)); carregarResumo(); }
+      catch (e) { avisar(e.message); }
+    }));
+    alvo.querySelectorAll("[data-apagar]").forEach((b) => b.addEventListener("click", async () => {
+      const linha = b.closest(".linha");
+      if (!confirm("Remover essa palavra? O histórico dela também sai do painel.")) return;
+      try { await api(`buscas/${linha.dataset.id}`, { method: "DELETE" }); estado.opcoes = null; linha.remove(); carregarResumo(); }
+      catch (e) { avisar(e.message); }
+    }));
+  } catch (e) { $("#lista").textContent = e.message; }
+}
+
+function graficoDias(dias) {
+  if (!dias.length) return `<p class="chk">Sem histórico ainda.</p>`;
+  const max = Math.max(...dias.map((d) => d.anuncios), 1);
+  const w = 1000, h = 140, gap = 6, bw = Math.max(Math.min((w - gap * dias.length) / dias.length, 60), 4);
+  const barras = dias.map((d, i) => {
+    const bh = Math.max((d.anuncios / max) * (h - 30), 2);
+    const x = i * (bw + gap);
+    const rotulo = new Date(d.dia + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    return `<rect x="${x}" y="${h - 18 - bh}" width="${bw}" height="${bh}" rx="3" fill="var(--accent)"><title>${rotulo}: ${d.anuncios} anúncios</title></rect>
+      <text x="${x + bw / 2}" y="${h - 4}" font-size="11" text-anchor="middle" fill="var(--muted)">${rotulo}</text>
+      <text x="${x + bw / 2}" y="${h - 22 - bh}" font-size="11" text-anchor="middle" fill="var(--text)">${d.anuncios}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMinYMid meet" role="img" aria-label="Anúncios vistos por dia">${barras}</svg>`;
+}
+
+async function abrirPagina(id) {
+  const fundo = $("#fundo"), modal = $("#modal");
+  modal.innerHTML = `<div class="carregando">Carregando…</div>`;
+  fundo.classList.add("aberto");
+  try {
+    const { pagina, dias, anuncios } = await api(`pagina/${encodeURIComponent(id)}`);
+    modal.innerHTML = `
+      <div class="modal-topo">
+        ${urlSegura(pagina.foto_url) ? `<img class="avatar" src="${esc(pagina.foto_url)}" alt="" referrerpolicy="no-referrer">` : ""}
+        <h2 id="modal-titulo">${esc(pagina.nome ?? "Página")}</h2>
+        ${urlSegura(pagina.url) ? `<a class="btn peq" href="${esc(pagina.url)}" target="_blank" rel="noopener noreferrer">Página ↗</a>` : ""}
+        <a class="btn peq" href="https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=ALL&view_all_page_id=${encodeURIComponent(pagina.page_id)}&search_type=page" target="_blank" rel="noopener noreferrer">Todos na Biblioteca ↗</a>
+        <button class="btn peq" id="fechar" aria-label="Fechar">✕</button>
+      </div>
+      <div class="grafico"><b>Anúncios vistos por dia nas suas buscas</b>${graficoDias(dias)}</div>
+      <div class="grade" id="anuncios-pagina">${anuncios.map((o) => cardOferta(o)).join("")}</div>`;
+    ligarCards($("#anuncios-pagina"));
+    $("#fechar").addEventListener("click", fecharModal);
+  } catch (e) { modal.innerHTML = `<p>${esc(e.message)}</p><button class="btn" id="fechar">Fechar</button>`; $("#fechar").addEventListener("click", fecharModal); }
+}
+function fecharModal() { $("#fundo").classList.remove("aberto"); }
+$("#fundo").addEventListener("click", (e) => { if (e.target.id === "fundo") fecharModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModal(); });
+
+carregarResumo();
+setInterval(carregarResumo, 15000);
+const abaInicial = location.hash.slice(1);
+trocarAba(["ofertas", "crescendo", "novidades", "salvos", "buscas"].includes(abaInicial) ? abaInicial : "ofertas");
+</script>
+</body>
+</html>

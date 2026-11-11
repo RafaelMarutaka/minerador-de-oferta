@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@minerador/nucleo": "*",
+    "@supabase/supabase-js": "^2.119.0",
     "zod": "^4.2.0"
   },
   "optionalDependencies": {

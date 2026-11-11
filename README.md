@@ -116,6 +116,58 @@ No `mudou`, a primeira vez só "tira uma foto". Rodando de novo depois de uns di
 
 ---
 
+## 📊 Painel de mineração
+
+O painel coleta suas palavras **todo dia sozinho**, guarda o histórico e mostra num site no seu PC quem está escalando.
+
+![Painel](https://img.shields.io/badge/abre%20em-127.0.0.1%3A4321-e8590c)
+
+| Aba | O que mostra |
+|---|---|
+| 🔥 **Ofertas** | Anúncios do mais forte pro mais fraco, com filtros de nicho, país, destino (WhatsApp ou página), formato e tempo no ar |
+| 📈 **Crescendo** | Páginas que mais ganharam anúncios nos últimos dias. É aqui que aparece a oferta escalando |
+| 🆕 **Páginas novas** | Quem começou a anunciar nas suas palavras nos últimos 3 dias |
+| ⭐ **Salvos** | Seu swipe file. Ao salvar, o vídeo é baixado pro seu PC na hora, com espaço pra anotação |
+| 🔎 **Palavras** | Adicione, pause ou remova as palavras que o minerador acompanha |
+
+### Ligando o painel (só uma vez)
+
+**1. Conecte ao banco**
+
+```powershell
+minerador configurar
+```
+
+Ele mostra o link da página do Supabase onde fica a **chave secreta** (começa com `sb_secret_`). Copie e cole quando pedir. A chave fica guardada só no seu computador.
+
+**2. Faça a primeira coleta**
+
+```powershell
+minerador coletar
+```
+
+Cada palavra leva de 30 segundos a 1 minuto, com uma pausa entre uma e outra pra Meta não bloquear.
+
+**3. Abra o painel**
+
+```powershell
+minerador painel
+```
+
+Abre no navegador. Deixe a janela do PowerShell aberta enquanto usa. Pra fechar, `Ctrl+C`.
+
+**4. Deixe coletando sozinho todo dia**
+
+```powershell
+minerador agendar 9:00
+```
+
+Todo dia nesse horário, com o PC ligado, ele coleta tudo sozinho. Pra desligar: `minerador desagendar`. O registro de cada coleta fica no arquivo `coletas.log`.
+
+> 💡 O **Crescendo** precisa de pelo menos duas coletas em dias diferentes pra comparar. Depois de uma semana coletando ele fica bem mais útil.
+
+---
+
 ## 🧠 Como ler os resultados
 
 **📅 Tempo no ar é o melhor sinal.** Ninguém deixa um anúncio que dá prejuízo rodando por meses. Se ele está no ar há muito tempo, provavelmente está vendendo.
@@ -186,6 +238,11 @@ No PowerShell, uma configuração é ligada assim: `$env:FBADS_COUNTRY="MX"`.
 | `FBADS_SURFACE` | `full` | `search` mostra menos ferramentas pro Claude |
 | `FBADS_TOOL_TIMEOUT_MS` | | Tempo máximo de cada busca |
 | `FBADS_DEBUG` | `0` | `1` mostra mensagens técnicas |
+| `MINERADOR_SUPABASE_KEY` | | Chave secreta do Supabase (em vez de usar `minerador configurar`) |
+| `MINERADOR_SUPABASE_URL` | projeto do minerador | Endereço do banco, se um dia trocar de projeto |
+| `MINERADOR_QUANTIDADE` | `50` | Quantos anúncios coletar por palavra |
+| `MINERADOR_PASTA_VIDEOS` | `Minerador\videos` | Onde salvar os vídeos dos anúncios salvos |
+| `MINERADOR_PASTA` | pasta do app | Onde ficam a configuração e o `coletas.log` |
 
 </details>
 
@@ -208,6 +265,8 @@ O `minerador` é o jeito fácil. Por trás dele existe o `minerador-cli`, que de
 | `ad-library-url` | Gera o link da busca pra abrir no navegador |
 | `backend-status` | Mostra qual modo está ligado e se custa dinheiro |
 | `doctor` | Testa se a instalação está funcionando |
+
+Comandos do painel: `minerador configurar`, `minerador coletar [palavra]`, `minerador painel`, `minerador agendar 9:00` e `minerador desagendar`.
 
 Opções úteis em qualquer comando: `--json` (resultado em JSON), `--limit 40` (quantos anúncios trazer) e `--select ads.library_id,ads.days_active` (só os campos que você quer).
 
@@ -237,6 +296,9 @@ docker run -p 8787:8787 -e FBADS_HTTP_TOKEN=uma-senha-sua minerador
 
 ```
 src/              o minerador: buscas, leitura da Biblioteca e comandos
+src/painel/       coletor, agendamento e servidor do painel
+painel/           a página do painel
+supabase/         estrutura do banco (pra recriar em outro projeto)
 packages/nucleo/  o núcleo que transforma as ferramentas em comandos e no servidor do Claude
 tests/            testes automáticos (npm test)
 licenses/         avisos de licença dos componentes

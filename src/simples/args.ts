@@ -14,6 +14,11 @@ export type Pedido =
   | { tipo: "mudou"; pageId: string; opcoes: Opcoes }
   | { tipo: "abrir"; termo: string; opcoes: Opcoes }
   | { tipo: "testar" }
+  | { tipo: "configurar" }
+  | { tipo: "coletar"; filtro?: string; opcoes: Opcoes }
+  | { tipo: "painel" }
+  | { tipo: "agendar"; horario: string }
+  | { tipo: "desagendar" }
   | { tipo: "ajuda" }
   | { tipo: "erro"; mensagem: string };
 
@@ -23,6 +28,7 @@ export type Opcoes = {
   soVideos: boolean;
   todos: boolean;
   planilha: boolean;
+  log: boolean;
 };
 
 const PAISES: Record<string, string> = {
@@ -70,11 +76,16 @@ const COMANDOS: Record<string, Comando> = {
   mudou: "mudou", mudancas: "mudou", "mudanças": "mudou",
   abrir: "abrir", link: "abrir",
   testar: "testar", teste: "testar", doctor: "testar",
+  configurar: "configurar", config: "configurar",
+  coletar: "coletar", coleta: "coletar",
+  painel: "painel",
+  agendar: "agendar",
+  desagendar: "desagendar",
   ajuda: "ajuda", help: "ajuda", "--help": "ajuda", "-h": "ajuda", "?": "ajuda",
 };
 
 export function lerPedido(argv: string[]): Pedido {
-  const opcoes: Opcoes = { soVideos: false, todos: false, planilha: false };
+  const opcoes: Opcoes = { soVideos: false, todos: false, planilha: false, log: false };
   const palavras: string[] = [];
 
   for (let i = 0; i < argv.length; i++) {
@@ -98,6 +109,8 @@ export function lerPedido(argv: string[]): Pedido {
       opcoes.todos = true;
     } else if (baixo === "--planilha" || baixo === "--csv" || baixo === "--salvar") {
       opcoes.planilha = true;
+    } else if (baixo === "--log") {
+      opcoes.log = true;
     } else if (/^--[a-z]{2}$/.test(baixo)) {
       opcoes.pais = baixo.slice(2).toUpperCase();
     } else if (baixo.startsWith("-") && !/^-\d/.test(baixo)) {
@@ -117,6 +130,11 @@ export function lerPedido(argv: string[]): Pedido {
 
   if (tipo === "ajuda") return { tipo: "ajuda" };
   if (tipo === "testar") return { tipo: "testar" };
+  if (tipo === "configurar") return { tipo: "configurar" };
+  if (tipo === "painel") return { tipo: "painel" };
+  if (tipo === "desagendar") return { tipo: "desagendar" };
+  if (tipo === "coletar") return { tipo: "coletar", filtro: termo || undefined, opcoes };
+  if (tipo === "agendar") return { tipo: "agendar", horario: termo || "09:00" };
 
   if (!termo) {
     const exemplos: Record<string, string> = {
