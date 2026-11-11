@@ -20,7 +20,7 @@ export type ConfigPainel = {
   pastaVideos: string;
 };
 
-export const URL_PADRAO = "https://suixpajedtbwnamefzml.supabase.co";
+export const URL_PADRAO = "https://gsbbrpczdocervrcvsbv.supabase.co";
 
 export function pastaApp(env: NodeJS.ProcessEnv = process.env): string {
   if (env["MINERADOR_PASTA"]) return env["MINERADOR_PASTA"];

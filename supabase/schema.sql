@@ -1,5 +1,5 @@
 -- Estrutura do banco do Minerador de Oferta (Supabase / Postgres).
--- Já aplicada no projeto minerador-de-oferta. Serve pra recriar o banco em
+-- Já aplicada no projeto minerador-de-oferta (Personal Projects). Serve pra recriar o banco em
 -- outro projeto: cole no SQL Editor do Supabase e rode.
 
 create table public.buscas (
