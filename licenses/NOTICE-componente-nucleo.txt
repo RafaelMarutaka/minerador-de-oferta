@@ -1,3 +1,7 @@
+Minerador de Oferta - Copyright (c) 2026 Rafael Marutaka.
+Este componente foi modificado e integrado ao Minerador de Oferta por Rafael Marutaka.
+Aviso de licença original do componente, mantido como a licença exige:
+
 Slipway
 Copyright 2026 Navid Moazzez
 
