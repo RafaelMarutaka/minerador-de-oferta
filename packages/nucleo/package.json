@@ -3,7 +3,6 @@
   "version": "0.1.24",
   "description": "Núcleo do Minerador de Oferta: gera o servidor MCP e a CLI a partir de uma definição de ferramenta.",
   "type": "module",
-  "license": "Apache-2.0",
   "engines": {
     "node": ">=22"
   },
