@@ -22,7 +22,7 @@ import { defaultCountry, loadConfig } from "./config.js";
 import { AdLibraryError } from "./errors.js";
 import { SnapshotStore } from "./store/snapshots.js";
 import { lerPedido, type Opcoes } from "./simples/args.js";
-import { agendar, desagendar, horarioValido } from "./painel/agendar.js";
+import { agendar, criarAtalho, desagendar, horarioValido } from "./painel/agendar.js";
 import { buscasAtivas, conectar } from "./painel/banco.js";
 import { coletar, relatoEmArquivo } from "./painel/coletar.js";
 import { SemConfiguracao, URL_PADRAO, salvarConfig } from "./painel/config.js";
@@ -81,7 +81,7 @@ ${cor.negrito("Ligar o minerador ao Supabase")}
     const db = conectar({ supabaseUrl: URL_PADRAO, supabaseKey: chave });
     const buscas = await buscasAtivas(db);
     const caminho = await salvarConfig({ supabaseUrl: URL_PADRAO, supabaseKey: chave });
-    process.stdout.write(`\n${cor.verde("Conectado!")} ${buscas.length} palavras prontas pra minerar.\nConfiguração salva em ${caminho}\n\nPróximo passo: ${cor.negrito("minerador painel")}\n`);
+    process.stdout.write(`\n${cor.verde("Conectado!")} ${buscas.length} palavras prontas pra minerar.\nConfiguração salva em ${caminho}\n\nPróximos passos:\n  ${cor.negrito("minerador coletar")}   primeira coleta\n  ${cor.negrito("minerador atalho")}    atalho do painel na área de trabalho\n  ${cor.negrito("minerador agendar 9:00")}   coleta sozinho todo dia\n`);
     return 0;
   } catch (erro) {
     process.stderr.write(`\n${cor.vermelho("Não consegui conectar com essa chave:")} ${erro instanceof Error ? erro.message : String(erro)}\nConfira se copiou a chave secreta inteira.\n`);
@@ -136,6 +136,7 @@ ${cor.negrito("Painel")}
   minerador coletar moldes             coleta só as palavras que têm "moldes"
   minerador agendar 9:00               coleta sozinho todo dia nesse horário
   minerador desagendar                 desliga a coleta automática
+  minerador atalho                     cria um atalho do painel na área de trabalho
 
 ${cor.negrito("Outros")}
   minerador abrir moldes               abre a busca no seu navegador
@@ -214,6 +215,15 @@ async function main(): Promise<number> {
       return 0;
     } catch (erro) {
       process.stderr.write(`${cor.vermelho("Não consegui agendar:")} ${erro instanceof Error ? erro.message : String(erro)}\n`);
+      return 1;
+    }
+  }
+  if (pedido.tipo === "atalho") {
+    try {
+      process.stdout.write(`${await criarAtalho()}\n`);
+      return 0;
+    } catch (erro) {
+      process.stderr.write(`${cor.vermelho("Não consegui criar o atalho:")} ${erro instanceof Error ? erro.message : String(erro)}\n`);
       return 1;
     }
   }

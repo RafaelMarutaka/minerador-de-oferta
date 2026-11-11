@@ -49,3 +49,32 @@ export async function desagendar(): Promise<string> {
     return "Não havia coleta automática agendada.";
   }
 }
+
+/**
+ * The PowerShell that makes a desktop shortcut opening the panel. Paths go in
+ * through environment variables, so no quoting of user folders is needed.
+ */
+export const SCRIPT_ATALHO = [
+  "$desktop = [Environment]::GetFolderPath('Desktop')",
+  "$caminho = Join-Path $desktop 'Minerador de Oferta.lnk'",
+  "$s = (New-Object -ComObject WScript.Shell).CreateShortcut($caminho)",
+  "$s.TargetPath = $env:MINERADOR_NODE",
+  "$s.Arguments = '\"' + $env:MINERADOR_SCRIPT + '\" painel'",
+  "$s.WorkingDirectory = $env:USERPROFILE",
+  "$s.WindowStyle = 7",
+  "$s.Description = 'Abre o painel do Minerador de Oferta'",
+  "$s.Save()",
+  "Write-Output $caminho",
+].join("; ");
+
+export async function criarAtalho(): Promise<string> {
+  if (process.platform !== "win32") return "O atalho na área de trabalho é só pro Windows. Aqui, rode: minerador painel";
+  const { node, script } = comandoColeta();
+  // -EncodedCommand (UTF-16LE base64) avoids every Windows quoting rule on the way in.
+  const codificado = Buffer.from(SCRIPT_ATALHO, "utf16le").toString("base64");
+  const { stdout } = await rodar("powershell", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", codificado], {
+    windowsHide: true,
+    env: { ...process.env, MINERADOR_NODE: node, MINERADOR_SCRIPT: script },
+  });
+  return `Atalho criado: ${stdout.trim()}\nÉ só dar dois cliques em "Minerador de Oferta" na área de trabalho pra abrir o painel.`;
+}

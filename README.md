@@ -48,7 +48,7 @@ cd minerador-de-oferta
 **2. Instale**
 
 ```powershell
-npm install
+npm ci
 npm run build
 npx playwright install chromium
 npm link
@@ -156,6 +156,14 @@ minerador painel
 
 Abre no navegador. Deixe a janela do PowerShell aberta enquanto usa. Pra fechar, `Ctrl+C`.
 
+Pra não precisar do PowerShell no dia a dia, crie um atalho na área de trabalho:
+
+```powershell
+minerador atalho
+```
+
+Aí é só dar dois cliques em **Minerador de Oferta** na área de trabalho. A janela do painel abre minimizada.
+
 **4. Deixe coletando sozinho todo dia**
 
 ```powershell
@@ -177,6 +185,19 @@ Todo dia nesse horário, com o PC ligado, ele coleta tudo sozinho. Pra desligar:
 **⚠️ O que não existe em lugar nenhum:** vendas, faturamento e lucro de concorrente. Ninguém tem esses dados, nem ferramenta paga. O que dá pra fazer é ler os sinais acima.
 
 **⚠️ Gasto e alcance vêm vazios no Brasil e no México.** A Meta só mostra esses números pra anúncios na Europa e anúncios políticos. Vazio aqui é normal, não é erro.
+
+---
+
+## 🔄 Atualizar o minerador
+
+Quando tiver versão nova no GitHub:
+
+```powershell
+cd $HOME\minerador-de-oferta
+git pull
+npm ci
+npm run build
+```
 
 ---
 
@@ -266,7 +287,7 @@ O `minerador` é o jeito fácil. Por trás dele existe o `minerador-cli`, que de
 | `backend-status` | Mostra qual modo está ligado e se custa dinheiro |
 | `doctor` | Testa se a instalação está funcionando |
 
-Comandos do painel: `minerador configurar`, `minerador coletar [palavra]`, `minerador painel`, `minerador agendar 9:00` e `minerador desagendar`.
+Comandos do painel: `minerador configurar`, `minerador coletar [palavra]`, `minerador painel`, `minerador atalho`, `minerador agendar 9:00` e `minerador desagendar`.
 
 Opções úteis em qualquer comando: `--json` (resultado em JSON), `--limit 40` (quantos anúncios trazer) e `--select ads.library_id,ads.days_active` (só os campos que você quer).
 

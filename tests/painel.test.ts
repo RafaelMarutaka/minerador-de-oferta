@@ -2,7 +2,7 @@ import { request } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Ad } from "../src/adlibrary/types.js";
 import { lerPedido } from "../src/simples/args.js";
-import { argumentosSchtasks, horarioValido } from "../src/painel/agendar.js";
+import { SCRIPT_ATALHO, argumentosSchtasks, horarioValido } from "../src/painel/agendar.js";
 import { hoje, linhaAnuncio, linhaPagina, semRepetir } from "../src/painel/banco.js";
 import { filtrarBuscas, pausaEntreBuscas } from "../src/painel/coletar.js";
 import { iniciarPainel, nomeArquivoVideo } from "../src/painel/servidor.js";
@@ -59,6 +59,13 @@ describe("coleta e agenda", () => {
   it("builds the Windows task with this Node and this file", () => {
     const args = argumentosSchtasks("09:00", { node: "C:\\Program Files\\nodejs\\node.exe", script: "C:\\m\\dist\\minerador.js" });
     expect(args).toEqual(["/Create", "/TN", "Minerador de Oferta", "/TR", '"C:\\Program Files\\nodejs\\node.exe" "C:\\m\\dist\\minerador.js" coletar --log', "/SC", "DAILY", "/ST", "09:00", "/F"]);
+  });
+
+  it("builds a desktop shortcut that opens the panel minimized", () => {
+    expect(SCRIPT_ATALHO).toContain("Minerador de Oferta.lnk");
+    expect(SCRIPT_ATALHO).toContain("$s.WindowStyle = 7");
+    expect(SCRIPT_ATALHO).toContain("painel");
+    expect(lerPedido(["atalho"])).toEqual({ tipo: "atalho" });
   });
 
   it("parses the panel commands", () => {

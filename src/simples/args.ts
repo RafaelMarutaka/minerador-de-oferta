@@ -19,6 +19,7 @@ export type Pedido =
   | { tipo: "painel" }
   | { tipo: "agendar"; horario: string }
   | { tipo: "desagendar" }
+  | { tipo: "atalho" }
   | { tipo: "ajuda" }
   | { tipo: "erro"; mensagem: string };
 
@@ -81,6 +82,7 @@ const COMANDOS: Record<string, Comando> = {
   painel: "painel",
   agendar: "agendar",
   desagendar: "desagendar",
+  atalho: "atalho",
   ajuda: "ajuda", help: "ajuda", "--help": "ajuda", "-h": "ajuda", "?": "ajuda",
 };
 
@@ -133,6 +135,7 @@ export function lerPedido(argv: string[]): Pedido {
   if (tipo === "configurar") return { tipo: "configurar" };
   if (tipo === "painel") return { tipo: "painel" };
   if (tipo === "desagendar") return { tipo: "desagendar" };
+  if (tipo === "atalho") return { tipo: "atalho" };
   if (tipo === "coletar") return { tipo: "coletar", filtro: termo || undefined, opcoes };
   if (tipo === "agendar") return { tipo: "agendar", horario: termo || "09:00" };
 
