@@ -1,0 +1,42 @@
+{
+  "name": "minerador-de-oferta",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minerador de ofertas da Biblioteca de Anúncios da Meta: coleta anúncios ativos por palavra-chave e país, como servidor MCP e como linha de comando.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "minerador-mcp": "dist/mcp.js",
+    "minerador-cli": "dist/cli.js"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm run build -w @minerador/slipway && tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/mcp.js",
+    "cli": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "npm run build -w @minerador/slipway && tsc --noEmit",
+    "postinstall": "npm run build -w @minerador/slipway"
+  },
+  "dependencies": {
+    "@minerador/slipway": "*",
+    "zod": "^4.2.0"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.62.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  },
+  "license": "MIT",
+  "author": "Rafael Marutaka"
+}
