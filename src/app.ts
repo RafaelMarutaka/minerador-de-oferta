@@ -1,22 +1,22 @@
 /**
- * Minerador de Oferta: the Meta Ad Library app: everything Slipway needs to ship the MCP server and the CLI.
+ * Minerador de Oferta: the Meta Ad Library app: everything Nucleo needs to ship the MCP server and the CLI.
  *
- * This file only describes. It never starts anything, so `slipway check` and
+ * This file only describes. It never starts anything, so `nucleo check` and
  * tests can import it; `index.ts` is what runs.
  */
 
 import { createRequire } from "node:module";
-import { slipway } from "@minerador/slipway";
+import { nucleo } from "@minerador/nucleo";
 import { loadConfig } from "./config.js";
 import { doctor } from "./doctor.js";
 import { INSTRUCTIONS, PROMPTS, RESOURCES } from "./guide.js";
 import { ALL_TOOLS } from "./tools/index.js";
-import { makeContext, toSlipway, type ToolContext } from "./tools/kit.js";
+import { makeContext, toNucleo, type ToolContext } from "./tools/kit.js";
 
 const require = createRequire(import.meta.url);
 export const VERSION: string = (require("../package.json") as { version: string }).version;
 
-export const app = slipway<ToolContext>({
+export const app = nucleo<ToolContext>({
   name: "minerador",
   title: "Minerador de Oferta",
   version: VERSION,
@@ -30,7 +30,7 @@ export const app = slipway<ToolContext>({
     try {
       return makeContext(loadConfig(env));
     } catch (error) {
-      throw toSlipway(error);
+      throw toNucleo(error);
     }
   },
   secrets: ({ config }) => [config.scrapeCreatorsKey, config.apifyToken, config.archiveToken],

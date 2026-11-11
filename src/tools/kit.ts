@@ -1,8 +1,8 @@
 /**
- * Shared plumbing every tool uses, now on Slipway.
+ * Shared plumbing every tool uses, now on Nucleo.
  *
  * Tool modules keep describing themselves with a Zod shape and a handler. This
- * adapter turns each into a Slipway tool, so the MCP server, the CLI,
+ * adapter turns each into a Nucleo tool, so the MCP server, the CLI,
  * annotations and errors all come from the framework instead of a copy kept in
  * this repo.
  */
@@ -13,7 +13,7 @@ import {
   NotConfiguredError,
   NotFoundError,
   RateLimitError,
-  SlipwayError,
+  NucleoError,
   UsageError,
   content,
   image,
@@ -22,7 +22,7 @@ import {
   z,
   type ContentResult,
   type Tool,
-} from "@minerador/slipway";
+} from "@minerador/nucleo";
 import type { Backend } from "../adlibrary/types.js";
 import type { Config } from "../config.js";
 import { AdLibraryError } from "../errors.js";
@@ -67,7 +67,7 @@ export function okWithImages(data: unknown, images: { data: string; mimeType: st
  */
 type ErrorOptions = NonNullable<ConstructorParameters<typeof ApiError>[1]>;
 
-const RULES: Array<[RegExp, new (message: string, options?: ErrorOptions) => SlipwayError]> = [
+const RULES: Array<[RegExp, new (message: string, options?: ErrorOptions) => NucleoError]> = [
   [/^pass either|unknown backend/, UsageError],
   [/not configured|no [a-z ]*token is configured|needs (a|an) (token|api key)|not installed/, NotConfiguredError],
   [/rejected the|\(401\)|\(403\)|refused the run|error 190/, AuthError],
@@ -77,8 +77,8 @@ const RULES: Array<[RegExp, new (message: string, options?: ErrorOptions) => Sli
 
 const BUGS = new Set<unknown>([TypeError, ReferenceError, RangeError]);
 
-export function toSlipway(error: unknown): unknown {
-  if (error instanceof SlipwayError || !(error instanceof Error) || BUGS.has(error.constructor)) return error;
+export function toNucleo(error: unknown): unknown {
+  if (error instanceof NucleoError || !(error instanceof Error) || BUGS.has(error.constructor)) return error;
   const options: ErrorOptions = {
     cause: error,
     ...(error instanceof AdLibraryError && error.hint ? { hint: error.hint } : {}),
@@ -166,7 +166,7 @@ export function defineTool<S extends Shape, O extends Shape = Shape>(spec: ToolS
         // The output schema, when there is one, was declared beside this handler and is checked at run time.
         return (await handler(args, ctx)) as never;
       } catch (error) {
-        throw toSlipway(error);
+        throw toNucleo(error);
       } finally {
         // A command makes one call, and an open Chromium would keep the process
         // alive after it, so the CLI closes the backend each time, as 0.5 did.

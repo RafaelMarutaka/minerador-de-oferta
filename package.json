@@ -16,17 +16,17 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run build -w @minerador/slipway && tsc",
+    "build": "npm run build -w @minerador/nucleo && tsc",
     "dev": "tsc --watch",
     "start": "node dist/mcp.js",
     "cli": "node dist/cli.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "npm run build -w @minerador/slipway && tsc --noEmit",
-    "postinstall": "npm run build -w @minerador/slipway"
+    "typecheck": "npm run build -w @minerador/nucleo && tsc --noEmit",
+    "postinstall": "npm run build -w @minerador/nucleo"
   },
   "dependencies": {
-    "@minerador/slipway": "*",
+    "@minerador/nucleo": "*",
     "zod": "^4.2.0"
   },
   "optionalDependencies": {

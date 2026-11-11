@@ -3,11 +3,11 @@
  *
  * The command someone runs when a tool came back empty and they cannot tell
  * whether the problem is their setup, Meta, or the search itself. It answers
- * that without needing an MCP client attached. Slipway runs these on every
+ * that without needing an MCP client attached. Nucleo runs these on every
  * `doctor`, as 0.5 did, after its own checks.
  */
 
-import type { DoctorCheck } from "@minerador/slipway";
+import type { DoctorCheck } from "@minerador/nucleo";
 import { buildUrl } from "./adlibrary/url.js";
 import { inlinePayloads, parsePayloads } from "./adlibrary/harvest.js";
 import type { ToolContext } from "./tools/kit.js";

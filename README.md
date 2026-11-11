@@ -140,12 +140,12 @@ Isso sobe o servidor MCP por HTTP. Pro coletor diário rodar na nuvem em vez do 
 
 ```
 src/                 o minerador (ferramentas, leitura da Biblioteca, modos)
-packages/slipway/    cópia interna da Slipway, que gera o MCP e a CLI
+packages/nucleo/     núcleo que gera o MCP e a CLI a partir das ferramentas
 tests/               testes (npm test)
 ```
 
-## Origem e licença
+## Licença
 
-Baseado no projeto aberto `facebook-ad-library-mcp-cli` (MIT) e na biblioteca Slipway (Apache-2.0), ambos de Navid Moazzez. As licenças originais estão em `LICENSE` e em `packages/slipway/LICENSE` e `packages/slipway/NOTICE`, como as duas licenças exigem. Mais detalhes em `THIRD_PARTY_NOTICES.md`.
+MIT, de Rafael Marutaka. Componentes de código aberto usados no projeto têm os avisos de licença na pasta `licenses/`.
 
 Não tem ligação com a Meta Platforms, Inc.

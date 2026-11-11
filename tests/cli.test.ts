@@ -1,7 +1,7 @@
 /**
- * The two surfaces, now that Slipway builds both from ALL_TOOLS.
+ * The two surfaces, now that Nucleo builds both from ALL_TOOLS.
  *
- * Parsing, help and the exit-code contract are Slipway's and tested there. What
+ * Parsing, help and the exit-code contract are Nucleo's and tested there. What
  * matters here: every tool arrives on both surfaces intact, under 0.5's command
  * names; the resources and prompts still reach a client; the provider errors
  * keep their exit codes; the CLI closes the browser after its one call; and the
@@ -10,16 +10,16 @@
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EXIT } from "@minerador/slipway";
-import { checkApp, cli, connect } from "@minerador/slipway/testing";
+import { EXIT } from "@minerador/nucleo";
+import { checkApp, cli, connect } from "@minerador/nucleo/testing";
 import { app } from "../src/app.js";
 import { AdLibraryError } from "../src/errors.js";
 import { ALL_TOOLS } from "../src/tools/index.js";
-import { toSlipway } from "../src/tools/kit.js";
+import { toNucleo } from "../src/tools/kit.js";
 
 afterEach(() => vi.restoreAllMocks());
 
-describe("Meta Ad Library on Slipway", () => {
+describe("Meta Ad Library on Nucleo", () => {
   it("offers every tool as a command and over MCP, under the same names", async () => {
     const list = await cli(app, [], { env: {} });
     for (const tool of ALL_TOOLS) expect(list.stdout).toContain(tool.command);
@@ -63,14 +63,14 @@ describe("Meta Ad Library on Slipway", () => {
     expect(JSON.parse(run.stderr).hint).toContain("SCRAPECREATORS_API_KEY");
   });
 
-  it("passes slipway check", async () => {
+  it("passes nucleo check", async () => {
     const report = await checkApp(app, { env: {} });
     expect(report.findings.filter((finding) => finding.level === "error")).toEqual([]);
   });
 });
 
 describe("exit codes follow the house contract", () => {
-  const code = (message: string): number => (toSlipway(new AdLibraryError(message)) as { exitCode: number }).exitCode;
+  const code = (message: string): number => (toNucleo(new AdLibraryError(message)) as { exitCode: number }).exitCode;
 
   it("a missing argument is 2", () => {
     expect(code("Pass either query or page_ids.")).toBe(EXIT.usage);
@@ -94,17 +94,17 @@ describe("exit codes follow the house contract", () => {
   it("anything else from upstream is 5, a library's own error too", () => {
     expect(code("Apify error 500: upstream")).toBe(EXIT.api);
     class BrowserTimeout extends Error {}
-    expect((toSlipway(new BrowserTimeout("page.goto: Timeout 60000ms exceeded")) as { exitCode: number }).exitCode).toBe(EXIT.api);
+    expect((toNucleo(new BrowserTimeout("page.goto: Timeout 60000ms exceeded")) as { exitCode: number }).exitCode).toBe(EXIT.api);
   });
 
   it("keeps the provider's hint and backend", () => {
-    const known = toSlipway(new AdLibraryError("ScrapeCreators is out of credits (402).", { hint: "Top up the account.", backend: "scrapecreators" })) as { hint: string; details: unknown };
+    const known = toNucleo(new AdLibraryError("ScrapeCreators is out of credits (402).", { hint: "Top up the account.", backend: "scrapecreators" })) as { hint: string; details: unknown };
     expect(known.hint).toBe("Top up the account.");
     expect(known.details).toEqual({ backend: "scrapecreators" });
   });
 
   it("leaves a bug in this code as unexpected", () => {
-    expect(toSlipway(new TypeError("x is undefined"))).toBeInstanceOf(TypeError);
+    expect(toNucleo(new TypeError("x is undefined"))).toBeInstanceOf(TypeError);
   });
 });
 
@@ -117,7 +117,7 @@ describe("documentation stays in step with the code", () => {
       .map((entry) => (entry.isDirectory() ? source(`${dir}${entry.name}/`) : entry.name.endsWith(".ts") ? read(`${dir}${entry.name}`) : ""))
       .join("\n");
 
-  /** Every variable the server reads: this repo's code, and Slipway's as agent-context lists them. */
+  /** Every variable the server reads: this repo's code, and Nucleo's as agent-context lists them. */
   const used = async (): Promise<Set<string>> => {
     const context = JSON.parse((await cli(app, ["agent-context"], { env: {} })).stdout);
     return new Set([...names(source("../src/")), ...context.settings.map((setting: { env: string }) => setting.env)]);
@@ -132,7 +132,7 @@ describe("documentation stays in step with the code", () => {
     expect([...(await used())].filter((v) => !documented.has(v))).toEqual([]);
   });
 
-  // Since Slipway 0.1.15 the help names the settings that connect an account and the safety
+  // Since Nucleo 0.1.15 the help names the settings that connect an account and the safety
   // switches, and counts the rest, which agent-context describes one by one.
   it("names every environment variable in --help or agent-context", async () => {
     const help = (await cli(app, ["--help"], { env: {} })).stdout;

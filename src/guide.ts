@@ -3,7 +3,7 @@
  * resources, and the prompts. Moved verbatim from the v1 server.
  */
 
-import { z } from "@minerador/slipway";
+import { z } from "@minerador/nucleo";
 
 export const INSTRUCTIONS = `Reads Meta's public Ad Library: every ad running on Facebook, Instagram, Messenger, Threads and Audience Network, for any advertiser, in any country.
 
