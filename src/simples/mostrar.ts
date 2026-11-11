@@ -65,6 +65,40 @@ export function formato(ad: Ad): string {
   return "Imagem";
 }
 
+const BOTOES: Record<string, string> = {
+  "learn more": "Saiba mais",
+  "see details": "Ver detalhes",
+  "send message": "Enviar mensagem",
+  "send whatsapp message": "Enviar mensagem no WhatsApp",
+  "whatsapp": "WhatsApp",
+  "shop now": "Comprar agora",
+  "buy now": "Comprar agora",
+  "sign up": "Cadastre-se",
+  "subscribe": "Assinar",
+  "download": "Baixar",
+  "get offer": "Obter oferta",
+  "order now": "Pedir agora",
+  "book now": "Reservar",
+  "contact us": "Fale conosco",
+  "apply now": "Inscreva-se",
+  "watch more": "Assistir mais",
+  "get quote": "Pedir orçamento",
+  "install now": "Instalar",
+  "listen now": "Ouvir agora",
+  "send instagram message": "Enviar mensagem no Instagram",
+};
+
+/** Meta names buttons in English in the Library; say them the way the advertiser picked them in Portuguese. */
+export function botao(ad: Ad): string | undefined {
+  if (!ad.ctaText) return undefined;
+  return BOTOES[ad.ctaText.trim().toLowerCase()] ?? ad.ctaText;
+}
+
+/** A catalog ad's text is a template like {{product.brand}}; there is no copy to show. */
+function ehModelo(texto: string | undefined): boolean {
+  return Boolean(texto && /\{\{[^}]+\}\}/.test(texto));
+}
+
 function sinal(ad: Ad): string {
   const dias = ad.daysActive ?? 0;
   const copias = ad.variantsUsingCreative ?? 1;
@@ -80,6 +114,7 @@ function dias(n: number | undefined): string {
 
 function linhaCopy(texto: string | undefined, max = 160): string | undefined {
   if (!texto) return undefined;
+  if (ehModelo(texto)) return "(anúncio de catálogo, a copy muda pra cada produto)";
   const uma = texto.replace(/\s+/g, " ").trim();
   return uma.length <= max ? uma : `${uma.slice(0, max - 1)}…`;
 }
@@ -135,16 +170,15 @@ export function mostrarBusca(
   ordenarPorForca(ads).forEach((ad, i) => {
     const copias = ad.variantsUsingCreative && ad.variantsUsingCreative > 1 ? ` · ${cor.verde(`${ad.variantsUsingCreative} cópias do criativo`)}` : "";
     linhas.push(`${cor.negrito(`${String(i + 1).padStart(2)}.`)} ${sinal(ad)} ${cor.negrito(ad.pageName ?? "Página sem nome")} · ${cor.amarelo(dias(ad.daysActive))}${copias}`);
-    const botao = ad.ctaText ? ` · Botão: ${ad.ctaText}` : "";
-    linhas.push(`     ${formato(ad)}${botao} · Leva pra: ${cor.ciano(destino(ad))}`);
+    const textoBotao = botao(ad) ? ` · Botão: ${botao(ad)}` : "";
+    linhas.push(`     ${formato(ad)}${textoBotao} · Leva pra: ${cor.ciano(destino(ad))}`);
     const copy = linhaCopy(ad.body);
-    if (copy) linhas.push(`     ${cor.fraco(`"${copy}"`)}`);
-    const video = linkVideo(ad);
-    if (video) linhas.push(`     🎬 ${video}`);
+    if (copy) linhas.push(`     ${cor.fraco(ehModelo(ad.body) ? copy : `"${copy}"`)}`);
     linhas.push(`     🔗 ${ad.adDetailsUrl}`, "");
   });
 
   linhas.push(cor.fraco("🔥 forte (muitas cópias ou 60+ dias)   📈 crescendo   🆕 recente"));
+  linhas.push(cor.fraco("Pra ver o vídeo e a copy inteira: minerador anuncio <número do link>. Pra guardar tudo: --planilha"));
   linhas.push(cor.fraco("Tempo no ar e cópias do criativo são sinais, não números de venda."));
   return linhas.join("\n");
 }
@@ -167,12 +201,12 @@ export function mostrarPaginas(termo: string, pais: string, paginas: Advertiser[
 export function mostrarAnuncio(ad: Ad): string {
   const linhas = ["", `${sinal(ad)} ${cor.negrito(ad.pageName ?? "Página sem nome")} · ${cor.amarelo(dias(ad.daysActive))}`];
   if (ad.variantsUsingCreative && ad.variantsUsingCreative > 1) linhas.push(cor.verde(`${ad.variantsUsingCreative} cópias desse criativo rodando`));
-  linhas.push(`${formato(ad)}${ad.ctaText ? ` · Botão: ${ad.ctaText}` : ""} · Leva pra: ${cor.ciano(destino(ad))}`);
+  linhas.push(`${formato(ad)}${botao(ad) ? ` · Botão: ${botao(ad)}` : ""} · Leva pra: ${cor.ciano(destino(ad))}`);
   if (ad.startedRunning) linhas.push(`Começou em: ${ad.startedRunning.slice(0, 10)}`);
   if (ad.platforms.length) linhas.push(`Onde aparece: ${ad.platforms.join(", ")}`);
   if (ad.linkUrl) linhas.push(`Link de destino: ${ad.linkUrl}`);
   if (ad.title) linhas.push("", cor.negrito("Título"), ad.title);
-  if (ad.body) linhas.push("", cor.negrito("Copy"), ad.body.trim());
+  if (ad.body) linhas.push("", cor.negrito("Copy"), ehModelo(ad.body) ? "(anúncio de catálogo, a copy muda pra cada produto)" : ad.body.trim());
 
   const copiasDiferentes = ad.creatives.filter((c) => c.body && c.body.trim() !== (ad.body ?? "").trim());
   if (copiasDiferentes.length) {
@@ -216,7 +250,7 @@ export function planilhaCsv(ads: Ad[]): string {
   const cabecalho = ["Página", "Número da página", "Dias no ar", "Cópias do criativo", "Formato", "Botão", "Leva pra", "Copy", "Link do vídeo", "Link do anúncio"];
   const campo = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""').replace(/\s+/g, " ").trim()}"`;
   const linhas = ordenarPorForca(ads).map((ad) =>
-    [ad.pageName, ad.pageId, ad.daysActive, ad.variantsUsingCreative ?? 1, formato(ad), ad.ctaText, destino(ad), ad.body, linkVideo(ad), ad.adDetailsUrl]
+    [ad.pageName, ad.pageId, ad.daysActive, ad.variantsUsingCreative ?? 1, formato(ad), botao(ad), destino(ad), ehModelo(ad.body) ? "(catálogo)" : ad.body, linkVideo(ad), ad.adDetailsUrl]
       .map(campo)
       .join(";"),
   );

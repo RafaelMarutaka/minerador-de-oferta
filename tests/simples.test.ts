@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Ad } from "../src/adlibrary/types.js";
 import { codigoPais, lerPedido } from "../src/simples/args.js";
-import { destino, formato, mostrarBusca, mostrarMudancas, ordenarPorForca, planilhaCsv, rankingPaginas } from "../src/simples/mostrar.js";
+import { botao, destino, formato, mostrarBusca, mostrarMudancas, ordenarPorForca, planilhaCsv, rankingPaginas } from "../src/simples/mostrar.js";
 
 const ad = (over: Partial<Ad>): Ad => ({
   libraryId: "1",
@@ -75,6 +75,15 @@ describe("mostrar", () => {
     expect(destino(ads[1]!)).toBe("WhatsApp");
     expect(destino(ad({ linkDomain: "www.minhapagina.com" }))).toBe("minhapagina.com");
     expect(formato(ad({ creatives: [{ kind: "video", videoHdUrl: "x" }] }))).toBe("Vídeo");
+  });
+
+  it("says the button in Portuguese and hides catalog templates", () => {
+    expect(botao(ad({ ctaText: "Send WhatsApp message" }))).toBe("Enviar mensagem no WhatsApp");
+    expect(botao(ad({ ctaText: "Learn more" }))).toBe("Saiba mais");
+    const texto = mostrarBusca('"x"', "BR", [ad({ body: "{{product.brand}}", creatives: [{ kind: "video", videoHdUrl: "https://video.longo/x.mp4" }] })]);
+    expect(texto).toContain("anúncio de catálogo");
+    expect(texto).not.toContain("{{product.brand}}");
+    expect(texto).not.toContain("video.longo");
   });
 
   it("prints a readable search in Portuguese", () => {
