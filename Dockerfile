@@ -10,8 +10,7 @@ COPY packages ./packages
 RUN npm ci --omit=dev --ignore-scripts
 
 COPY dist ./dist
-COPY README.md SKILL.md LICENSE ./
-COPY licenses ./licenses
+COPY README.md SKILL.md ./
 
 ENV NODE_ENV=production
 ENV FBADS_HTTP_HOST=0.0.0.0
