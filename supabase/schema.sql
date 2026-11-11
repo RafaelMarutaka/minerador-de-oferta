@@ -153,3 +153,98 @@ $$;
 
 revoke all on function public.paginas_crescendo(integer) from public, anon, authenticated;
 revoke all on public.ofertas, public.paginas_por_dia from anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Filtro low ticket e páginas ignoradas (segunda versão)
+-- ---------------------------------------------------------------------------
+
+alter table public.anuncios
+  add column low_ticket boolean,
+  add column pontos_lt integer,
+  add column sinais text[];
+create index anuncios_low_ticket_idx on public.anuncios (low_ticket);
+
+create table public.paginas_ignoradas (
+  page_id text primary key,
+  nome text,
+  criada_em timestamptz not null default now()
+);
+alter table public.paginas_ignoradas enable row level security;
+
+drop view public.ofertas;
+create view public.ofertas with (security_invoker = true) as
+with ultimo as (
+  select max(dia) as d from public.aparicoes
+),
+pagina_hoje as (
+  select ap.page_id, count(distinct ap.library_id)::int as n
+  from public.aparicoes ap, ultimo
+  where ap.dia = ultimo.d
+  group by ap.page_id
+),
+achados as (
+  select ap.library_id,
+         array_agg(distinct b.termo order by b.termo) as termos,
+         array_agg(distinct b.pais order by b.pais) as paises,
+         array_agg(distinct b.nicho order by b.nicho) filter (where b.nicho is not null) as nichos,
+         max(ap.dia) as visto_em
+  from public.aparicoes ap
+  join public.buscas b on b.id = ap.busca_id
+  group by ap.library_id
+)
+select a.library_id, a.page_id, p.nome as pagina, p.foto_url, p.url as pagina_url,
+       a.pais, a.formato, a.botao, a.destino, a.link_url, a.dominio, a.titulo, a.copy,
+       a.dias_no_ar, a.copias, a.inicio, a.video_url, a.imagem_url, a.plataformas,
+       a.link_biblioteca, a.salvo, a.nota, a.arquivo_video, a.primeira_vez, a.ultima_vez,
+       a.low_ticket, a.pontos_lt, a.sinais,
+       (pi.page_id is not null) as ignorada,
+       coalesce(ph.n, 0) as anuncios_da_pagina,
+       ac.termos, ac.paises, ac.nichos, ac.visto_em,
+       (ac.visto_em = (select d from ultimo)) as no_ar_agora,
+       round((least(coalesce(a.copias, 1), 20) * 3
+            + least(coalesce(a.dias_no_ar, 0), 180) / 6.0
+            + least(coalesce(ph.n, 0), 30) * 2)::numeric, 1) as forca
+from public.anuncios a
+left join public.paginas p on p.page_id = a.page_id
+left join public.paginas_ignoradas pi on pi.page_id = a.page_id
+left join pagina_hoje ph on ph.page_id = a.page_id
+left join achados ac on ac.library_id = a.library_id;
+revoke all on public.ofertas from anon, authenticated;
+
+drop function public.paginas_crescendo(integer);
+create function public.paginas_crescendo(janela integer default 7, so_low_ticket boolean default true)
+returns table (
+  page_id text, nome text, foto_url text, url text,
+  anuncios_agora integer, anuncios_antes integer, crescimento integer,
+  ultimo_dia date, primeira_vez timestamptz, mais_antigo_dias integer
+)
+language sql stable security invoker set search_path = ''
+as $$
+  with por_dia as (
+    select ap.page_id, ap.dia, count(distinct ap.library_id)::int as anuncios
+    from public.aparicoes ap
+    join public.anuncios a on a.library_id = ap.library_id
+    where ap.page_id is not null
+      and (not so_low_ticket or a.low_ticket)
+      and not exists (select 1 from public.paginas_ignoradas pi where pi.page_id = ap.page_id)
+    group by ap.page_id, ap.dia
+  ),
+  ultimo as (
+    select distinct on (pd.page_id) pd.page_id, pd.dia, pd.anuncios
+    from por_dia pd order by pd.page_id, pd.dia desc
+  ),
+  base as (
+    select distinct on (pd.page_id) pd.page_id, pd.anuncios
+    from por_dia pd join ultimo u on u.page_id = pd.page_id
+    where pd.dia >= u.dia - janela and pd.dia < u.dia
+    order by pd.page_id, pd.dia asc
+  )
+  select u.page_id, p.nome, p.foto_url, p.url,
+         u.anuncios, coalesce(b.anuncios, u.anuncios), u.anuncios - coalesce(b.anuncios, u.anuncios),
+         u.dia, p.primeira_vez,
+         (select max(a.dias_no_ar) from public.anuncios a where a.page_id = u.page_id)
+  from ultimo u
+  left join base b on b.page_id = u.page_id
+  left join public.paginas p on p.page_id = u.page_id;
+$$;
+revoke all on function public.paginas_crescendo(integer, boolean) from public, anon, authenticated;

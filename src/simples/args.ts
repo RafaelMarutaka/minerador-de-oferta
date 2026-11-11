@@ -30,6 +30,7 @@ export type Opcoes = {
   todos: boolean;
   planilha: boolean;
   log: boolean;
+  semFiltro: boolean;
 };
 
 const PAISES: Record<string, string> = {
@@ -87,7 +88,7 @@ const COMANDOS: Record<string, Comando> = {
 };
 
 export function lerPedido(argv: string[]): Pedido {
-  const opcoes: Opcoes = { soVideos: false, todos: false, planilha: false, log: false };
+  const opcoes: Opcoes = { soVideos: false, todos: false, planilha: false, log: false, semFiltro: false };
   const palavras: string[] = [];
 
   for (let i = 0; i < argv.length; i++) {
@@ -111,6 +112,8 @@ export function lerPedido(argv: string[]): Pedido {
       opcoes.todos = true;
     } else if (baixo === "--planilha" || baixo === "--csv" || baixo === "--salvar") {
       opcoes.planilha = true;
+    } else if (baixo === "--sem-filtro" || baixo === "--tudo" || baixo === "--marcas") {
+      opcoes.semFiltro = true;
     } else if (baixo === "--log") {
       opcoes.log = true;
     } else if (/^--[a-z]{2}$/.test(baixo)) {

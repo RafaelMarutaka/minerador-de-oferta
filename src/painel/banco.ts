@@ -9,6 +9,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Ad } from "../adlibrary/types.js";
+import { avaliarLowTicket } from "../simples/lowticket.js";
 import { botao, destino, formato } from "../simples/mostrar.js";
 import type { ConfigPainel } from "./config.js";
 
@@ -42,6 +43,7 @@ export function linhaPagina(ad: Ad, agora: string) {
 export function linhaAnuncio(ad: Ad, pais: string, agora: string) {
   const video = ad.creatives.find((c) => c.videoHdUrl || c.videoSdUrl);
   const imagem = ad.creatives.find((c) => c.imageResizedUrl || c.imageUrl || c.previewImageUrl);
+  const avaliacao = avaliarLowTicket(ad);
   return {
     library_id: ad.libraryId,
     page_id: ad.pageId ?? null,
@@ -61,6 +63,9 @@ export function linhaAnuncio(ad: Ad, pais: string, agora: string) {
     imagem_url: video?.previewImageUrl ?? imagem?.imageResizedUrl ?? imagem?.imageUrl ?? imagem?.previewImageUrl ?? null,
     plataformas: ad.platforms.length ? ad.platforms : null,
     link_biblioteca: ad.adDetailsUrl,
+    low_ticket: avaliacao.lowTicket,
+    pontos_lt: avaliacao.pontos,
+    sinais: avaliacao.sinais,
     ultima_vez: agora,
   };
 }

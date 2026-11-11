@@ -22,6 +22,7 @@ import { defaultCountry, loadConfig } from "./config.js";
 import { AdLibraryError } from "./errors.js";
 import { SnapshotStore } from "./store/snapshots.js";
 import { lerPedido, type Opcoes } from "./simples/args.js";
+import { avaliarLowTicket } from "./simples/lowticket.js";
 import { agendar, criarAtalho, desagendar, horarioValido } from "./painel/agendar.js";
 import { buscasAtivas, conectar } from "./painel/banco.js";
 import { coletar, relatoEmArquivo } from "./painel/coletar.js";
@@ -122,6 +123,7 @@ ${cor.negrito("Buscar ofertas")}
   minerador moldes --videos            só anúncios em vídeo
   minerador moldes -n 60               traz 60 anúncios (padrão: ${QUANTIDADE_PADRAO})
   minerador moldes --planilha          salva também uma planilha pra abrir no Excel
+  minerador pdf --sem-filtro           mostra também lojas, apps e marcas grandes
 
 ${cor.negrito("Espiar um concorrente")}
   minerador pagina Moldes da Ana       acha o número da página
@@ -271,11 +273,14 @@ async function main(): Promise<number> {
         if (ehPagina && resultado.ads.length > 0) await store.record(pedido.pageId, resultado.ads);
 
         const titulo = ehPagina ? `Página ${resultado.ads[0]?.pageName ?? pedido.pageId}` : `"${pedido.termo}"`;
+        // A competitor's own page is shown whole; a keyword search keeps only low-ticket offers unless asked.
+        const filtrar = !ehPagina && !opcoes.semFiltro;
+        const mostrados = filtrar ? resultado.ads.filter((ad) => avaliarLowTicket(ad).lowTicket) : resultado.ads;
         process.stdout.write(
-          `${mostrarBusca(titulo, pais, resultado.ads, { total: resultado.totalAvailable, aviso: resultado.note, url: resultado.url })}\n`,
+          `${mostrarBusca(titulo, pais, mostrados, { total: resultado.totalAvailable, aviso: resultado.note, url: resultado.url, escondidos: resultado.ads.length - mostrados.length })}\n`,
         );
-        if (opcoes.planilha && resultado.ads.length > 0) {
-          const caminho = await salvarPlanilha(ehPagina ? `pagina-${pedido.pageId}` : pedido.termo, planilhaCsv(resultado.ads));
+        if (opcoes.planilha && mostrados.length > 0) {
+          const caminho = await salvarPlanilha(ehPagina ? `pagina-${pedido.pageId}` : pedido.termo, planilhaCsv(mostrados));
           process.stdout.write(`\n📊 Planilha salva em: ${caminho}\n`);
         }
         return 0;

@@ -64,6 +64,7 @@ main { max-width: 1320px; margin: 0 auto; padding: 20px; }
 .copy.aberta { -webkit-line-clamp: unset; }
 .mais { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0; font-size: 13px; text-align: left; }
 .termos { display: flex; gap: 4px; flex-wrap: wrap; }
+.sinais { font-size: 12px; color: var(--muted); line-height: 1.4; }
 .termo { font-size: 11px; color: var(--muted); border: 1px dashed var(--border); border-radius: 6px; padding: 1px 6px; }
 .acoes { display: flex; gap: 6px; margin-top: auto; flex-wrap: wrap; }
 .salvo { color: var(--accent); border-color: var(--accent); }
@@ -125,7 +126,7 @@ textarea.nota { width: 100%; min-height: 60px; resize: vertical; background: var
 
 <script>
 const PAISES = { BR: "Brasil", MX: "México", AR: "Argentina", CO: "Colômbia", CL: "Chile", PE: "Peru", EC: "Equador", US: "EUA", ES: "Espanha", PT: "Portugal", UY: "Uruguai", PY: "Paraguai", BO: "Bolívia", GT: "Guatemala", DO: "Rep. Dominicana", CR: "Costa Rica", PA: "Panamá", VE: "Venezuela" };
-const estado = { aba: "ofertas", filtros: { q: "", termo: "", nicho: "", pais: "", destino: "", formato: "", min_dias: "", ordem: "forca", agora: "1" }, opcoes: null, janela: 7 };
+const estado = { aba: "ofertas", filtros: { q: "", termo: "", nicho: "", pais: "", destino: "", formato: "", min_dias: "", ordem: "forca", agora: "1", lt: "1" }, opcoes: null, janela: 7 };
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (n) => Number(n ?? 0).toLocaleString("pt-BR");
@@ -218,12 +219,14 @@ function cardOferta(o, comNota = false) {
       <button class="pag" data-pagina="${esc(o.page_id ?? "")}">${esc(o.pagina ?? "Página sem nome")}</button>
       <div class="selos">${selos(o)}</div>
       ${copy ? `<div class="copy">${esc(copy)}</div><button class="mais">ver tudo</button>` : ""}
+      ${o.sinais?.length ? `<div class="sinais" title="Por que o minerador ${o.low_ticket ? "acha que é" : "acha que não é"} low ticket">${o.low_ticket ? "✅" : "⛔"} ${esc(o.sinais.slice(0, 3).join(" · "))}</div>` : ""}
       ${o.termos?.length ? `<div class="termos">${o.termos.map((t) => `<span class="termo">${esc(t)}</span>`).join("")}</div>` : ""}
       ${comNota ? `<textarea class="nota" placeholder="Anotação (ex.: modelar o gancho, testar no México…)">${esc(o.nota ?? "")}</textarea>` : ""}
       <div class="acoes">
         <button class="btn peq ${o.salvo ? "salvo" : ""}" data-salvar="${o.salvo ? "0" : "1"}">${o.salvo ? "★ Salvo" : "☆ Salvar"}</button>
         ${urlSegura(o.link_biblioteca) ? `<a class="btn peq" href="${esc(o.link_biblioteca)}" target="_blank" rel="noopener noreferrer">Biblioteca ↗</a>` : ""}
         ${urlSegura(o.link_url) ? `<a class="btn peq" href="${esc(o.link_url)}" target="_blank" rel="noopener noreferrer">Destino ↗</a>` : ""}
+        ${o.page_id ? `<button class="btn peq" data-ignorar="${esc(o.page_id)}" title="Esconde todos os anúncios dessa página">🚫 Ignorar página</button>` : ""}
       </div>
     </div>
   </article>`;
@@ -260,6 +263,15 @@ function ligarCards(raiz, aoMudar) {
       avisar(r.aviso ?? (r.arquivo ? `Salvo. Vídeo baixado em ${r.arquivo}` : salvo ? "Salvo." : "Removido dos salvos."));
       aoMudar?.();
     } catch (e) { avisar(e.message); } finally { b.disabled = false; }
+  }));
+  raiz.querySelectorAll("[data-ignorar]").forEach((b) => b.addEventListener("click", async () => {
+    const pagina = b.dataset.ignorar;
+    const nome = b.closest(".card").querySelector(".pag")?.textContent ?? "essa página";
+    try {
+      await api(`ignorar/${encodeURIComponent(pagina)}`, { method: "POST", body: { ignorar: true } });
+      document.querySelectorAll(`[data-ignorar="${CSS.escape(pagina)}"]`).forEach((x) => x.closest(".card")?.remove());
+      avisar(`"${nome}" não aparece mais. Dá pra desfazer na aba Palavras.`);
+    } catch (e) { avisar(e.message); }
   }));
   raiz.querySelectorAll("textarea.nota").forEach((t) => t.addEventListener("change", async () => {
     const id = t.closest(".card").dataset.id;
@@ -303,6 +315,7 @@ async function telaOfertas() {
         <option value="copias" ${f.ordem === "copias" ? "selected" : ""}>Mais cópias</option>
         <option value="novos" ${f.ordem === "novos" ? "selected" : ""}>Achados mais recentes</option>
       </select>
+      <label class="chk"><input type="checkbox" name="lt" ${f.lt === "1" ? "checked" : ""}> só low ticket</label>
       <label class="chk"><input type="checkbox" name="agora" ${f.agora === "1" ? "checked" : ""}> só no ar agora</label>
     </form>
     <div id="resultado" class="carregando">Carregando…</div>`;
@@ -324,9 +337,10 @@ async function listarOfertas() {
   try {
     const lista = await api(`ofertas?${params}`);
     if (!lista.length) {
-      const temFiltro = Object.entries(estado.filtros).some(([k, v]) => v && !["ordem", "agora"].includes(k));
+      const temFiltro = Object.entries(estado.filtros).some(([k, v]) => v && !["ordem", "agora", "lt"].includes(k));
       alvo.className = "";
-      alvo.innerHTML = temFiltro ? `<div class="vazio-g"><h3>Nada com esses filtros</h3><p>Tente tirar algum filtro.</p></div>` : vazioColeta();
+      alvo.innerHTML = temFiltro ? `<div class="vazio-g"><h3>Nada com esses filtros</h3><p>Tente tirar algum filtro.</p></div>`
+        : estado.filtros.lt === "1" ? `<div class="vazio-g"><h3>Nenhuma oferta low ticket ainda</h3><p>Rode uma coleta, ou desmarque <b>só low ticket</b> pra ver tudo que foi coletado.</p></div>` : vazioColeta();
       return;
     }
     alvo.className = "grade";
@@ -340,10 +354,12 @@ async function telaCrescendo() {
   main.innerHTML = `<div class="filtros">
       <label class="chk" for="janela">Crescimento nos últimos</label>
       <select id="janela" class="campo">${[3, 7, 14, 30].map((d) => `<option value="${d}" ${estado.janela === d ? "selected" : ""}>${d} dias</option>`).join("")}</select>
+      <label class="chk"><input type="checkbox" id="lt" ${estado.filtros.lt === "1" ? "checked" : ""}> só low ticket</label>
     </div><div id="lista" class="carregando">Carregando…</div>`;
   $("#janela").addEventListener("change", (e) => { estado.janela = Number(e.target.value); telaCrescendo(); });
+  $("#lt").addEventListener("change", (e) => { estado.filtros.lt = e.target.checked ? "1" : "0"; telaCrescendo(); });
   try {
-    const lista = await api(`crescendo?janela=${estado.janela}`);
+    const lista = await api(`crescendo?janela=${estado.janela}&lt=${estado.filtros.lt}`);
     const alvo = $("#lista");
     if (!lista.length) { alvo.className = ""; alvo.innerHTML = vazioColeta(); return; }
     alvo.className = "lista";
@@ -362,9 +378,10 @@ async function telaCrescendo() {
 
 async function telaNovidades() {
   const main = $("#conteudo");
-  main.innerHTML = `<div id="lista" class="carregando">Carregando…</div>`;
+  main.innerHTML = `<div class="filtros"><label class="chk"><input type="checkbox" id="lt" ${estado.filtros.lt === "1" ? "checked" : ""}> só páginas com oferta low ticket</label></div><div id="lista" class="carregando">Carregando…</div>`;
+  $("#lt").addEventListener("change", (e) => { estado.filtros.lt = e.target.checked ? "1" : "0"; telaNovidades(); });
   try {
-    const lista = await api("novidades");
+    const lista = await api(`novidades?lt=${estado.filtros.lt}`);
     const alvo = $("#lista");
     if (!lista.length) { alvo.className = ""; alvo.innerHTML = `<div class="vazio-g"><h3>Nenhuma página nova nos últimos 3 dias</h3><p>As páginas que aparecerem pela primeira vez nas suas buscas vão surgir aqui.</p></div>`; return; }
     alvo.className = "lista";
@@ -383,7 +400,7 @@ async function telaSalvos() {
   const main = $("#conteudo");
   main.innerHTML = `<div id="resultado" class="carregando">Carregando…</div>`;
   try {
-    const lista = await api("ofertas?salvos=1&agora=0&ordem=novos&limite=200");
+    const lista = await api("ofertas?salvos=1&agora=0&lt=0&ignoradas=1&ordem=novos&limite=200");
     const alvo = $("#resultado");
     if (!lista.length) { alvo.className = ""; alvo.innerHTML = `<div class="vazio-g"><h3>Nada salvo ainda</h3><p>Clique em <b>☆ Salvar</b> num anúncio pra montar seu swipe file. O vídeo é baixado pro seu PC na hora.</p></div>`; return; }
     alvo.className = "grade";
@@ -401,7 +418,10 @@ async function telaBuscas() {
       <input class="campo" name="nicho" placeholder="Nicho (opcional)" aria-label="Nicho" style="flex:0 1 180px">
       <button class="btn prim">Adicionar</button>
     </form>
-    <div id="lista" class="carregando">Carregando…</div>`;
+    <div id="lista" class="carregando">Carregando…</div>
+    <h3 style="margin:28px 0 10px">🚫 Páginas ignoradas</h3>
+    <div id="ignoradas" class="lista"></div>`;
+  carregarIgnoradas();
   $("#nova").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const d = Object.fromEntries(new FormData(ev.currentTarget));
@@ -431,6 +451,23 @@ async function telaBuscas() {
       catch (e) { avisar(e.message); }
     }));
   } catch (e) { $("#lista").textContent = e.message; }
+}
+
+async function carregarIgnoradas() {
+  const alvo = $("#ignoradas");
+  if (!alvo) return;
+  try {
+    const lista = await api("ignoradas");
+    alvo.innerHTML = lista.length ? lista.map((p) => `
+      <div class="linha">
+        <div class="nome"><b>${esc(p.nome ?? p.page_id)}</b><small>ignorada em ${esc(quando(p.criada_em))}</small></div>
+        <button class="btn peq" data-voltar="${esc(p.page_id)}">Voltar a mostrar</button>
+      </div>`).join("") : `<p class="chk" style="padding:0">Nenhuma. Use o botão 🚫 Ignorar página num anúncio pra esconder uma loja ou marca de vez.</p>`;
+    alvo.querySelectorAll("[data-voltar]").forEach((b) => b.addEventListener("click", async () => {
+      try { await api(`ignorar/${encodeURIComponent(b.dataset.voltar)}`, { method: "POST", body: { ignorar: false } }); carregarIgnoradas(); }
+      catch (e) { avisar(e.message); }
+    }));
+  } catch (e) { alvo.textContent = e.message; }
 }
 
 function graficoDias(dias) {

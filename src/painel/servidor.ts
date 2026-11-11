@@ -92,6 +92,8 @@ function rotas(db: SupabaseClient, config: ConfigPainel, estado: { coletando: bo
       const p = url.searchParams;
       let q = db.from("ofertas").select("*");
       if (p.get("agora") !== "0") q = q.eq("no_ar_agora", true);
+      if (p.get("lt") !== "0") q = q.eq("low_ticket", true);
+      if (p.get("ignoradas") !== "1") q = q.eq("ignorada", false);
       if (p.get("salvos") === "1") q = q.eq("salvo", true);
       if (p.get("termo")) q = q.contains("termos", [p.get("termo")]);
       if (p.get("nicho")) q = q.contains("nichos", [p.get("nicho")]);
@@ -124,7 +126,7 @@ function rotas(db: SupabaseClient, config: ConfigPainel, estado: { coletando: bo
 
     if (metodo === "GET" && recurso === "crescendo") {
       const janela = Math.min(Math.max(Number(url.searchParams.get("janela") ?? "7") || 7, 1), 60);
-      const { data, error } = await db.rpc("paginas_crescendo", { janela });
+      const { data, error } = await db.rpc("paginas_crescendo", { janela, so_low_ticket: url.searchParams.get("lt") !== "0" });
       checar("Crescimento", error);
       return ((data ?? []) as Array<{ crescimento: number; anuncios_agora: number }>)
         .sort((a, b) => b.crescimento - a.crescimento || b.anuncios_agora - a.anuncios_agora)
@@ -133,9 +135,20 @@ function rotas(db: SupabaseClient, config: ConfigPainel, estado: { coletando: bo
 
     if (metodo === "GET" && recurso === "novidades") {
       const desde = new Date(Date.now() - 3 * 86_400_000).toISOString();
-      const { data, error } = await db.from("paginas").select("*").gte("primeira_vez", desde).order("primeira_vez", { ascending: false }).limit(60);
+      const { data, error } = await db.from("paginas").select("*").gte("primeira_vez", desde).order("primeira_vez", { ascending: false }).limit(200);
       checar("Novidades", error);
-      return data ?? [];
+      const paginas = data ?? [];
+      const ids = paginas.map((p) => p.page_id);
+      if (ids.length === 0) return [];
+      const [ignoradas, lt] = await Promise.all([
+        db.from("paginas_ignoradas").select("page_id").in("page_id", ids),
+        db.from("anuncios").select("page_id").in("page_id", ids).eq("low_ticket", true),
+      ]);
+      checar("Novidades", ignoradas.error ?? lt.error);
+      const fora = new Set((ignoradas.data ?? []).map((r) => r.page_id));
+      const comLowTicket = new Set((lt.data ?? []).map((r) => r.page_id));
+      const soLowTicket = url.searchParams.get("lt") !== "0";
+      return paginas.filter((p) => !fora.has(p.page_id) && (!soLowTicket || comLowTicket.has(p.page_id))).slice(0, 60);
     }
 
     if (metodo === "GET" && recurso === "pagina" && id) {
@@ -204,6 +217,25 @@ function rotas(db: SupabaseClient, config: ConfigPainel, estado: { coletando: bo
         }
       }
       return { ok: true, salvo, arquivo, aviso };
+    }
+
+    if (recurso === "ignoradas" && metodo === "GET") {
+      const { data, error } = await db.from("paginas_ignoradas").select("*").order("criada_em", { ascending: false });
+      checar("Páginas ignoradas", error);
+      return data ?? [];
+    }
+
+    if (metodo === "POST" && recurso === "ignorar" && id) {
+      const corpo = await lerCorpo(req);
+      if (corpo["ignorar"] === false) {
+        const { error } = await db.from("paginas_ignoradas").delete().eq("page_id", id);
+        checar("Voltar a mostrar", error);
+        return { ok: true, ignorada: false };
+      }
+      const { data: pg } = await db.from("paginas").select("nome").eq("page_id", id).maybeSingle();
+      const { error } = await db.from("paginas_ignoradas").upsert({ page_id: id, nome: pg?.nome ?? null }, { onConflict: "page_id" });
+      checar("Ignorar página", error);
+      return { ok: true, ignorada: true };
     }
 
     if (metodo === "POST" && recurso === "coletar") {

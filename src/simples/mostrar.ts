@@ -142,14 +142,18 @@ export function mostrarBusca(
   titulo: string,
   pais: string,
   ads: Ad[],
-  extra: { total?: number; aviso?: string; url?: string } = {},
+  extra: { total?: number; aviso?: string; url?: string; escondidos?: number } = {},
 ): string {
   const linhas: string[] = [];
   const total = extra.total && extra.total > ads.length ? ` ${cor.fraco(`(a Meta diz que existem uns ${numero(extra.total)})`)}` : "";
   linhas.push("", `⛏️  ${cor.negrito(titulo)} · ${nomePais(pais)} · ${numero(ads.length)} anúncio${ads.length === 1 ? "" : "s"}${total}`, "");
 
+  if (extra.escondidos) {
+    linhas.push(cor.fraco(`🧹 ${extra.escondidos} anúncio${extra.escondidos === 1 ? "" : "s"} de loja, app ou marca grande escondido${extra.escondidos === 1 ? "" : "s"}. Pra ver tudo: --sem-filtro`), "");
+  }
+
   if (ads.length === 0) {
-    linhas.push(cor.amarelo("Nenhum anúncio encontrado."));
+    linhas.push(cor.amarelo(extra.escondidos ? "Nenhuma oferta low ticket nessa busca." : "Nenhum anúncio encontrado."));
     if (extra.aviso) linhas.push(cor.fraco(traduzirAviso(extra.aviso)));
     linhas.push("", "Dicas: tente uma palavra mais curta, outro país (--mx) ou espere uns minutos se for bloqueio da Meta.");
     if (extra.url) linhas.push(`Confira no navegador: ${extra.url}`);
