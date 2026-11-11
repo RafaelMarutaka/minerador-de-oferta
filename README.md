@@ -1,81 +1,144 @@
-# Minerador de Oferta
+<div align="center">
 
-Ferramenta pessoal pra minerar ofertas na Biblioteca de Anúncios da Meta (Facebook, Instagram, Messenger, Threads e Audience Network). Ela lê o arquivo público da Biblioteca, sem login e sem tocar em conta de anúncio, e entrega os dados de cada anúncio: copy, criativos (com link do vídeo em HD), página de destino, botão de CTA, há quantos dias está no ar e quantas variações usam o mesmo criativo.
+# ⛏️ Minerador de Oferta
 
-Funciona de dois jeitos, com as mesmas 9 ferramentas:
+**Descubra o que está rodando de verdade nos anúncios do Facebook e do Instagram.**
 
-- **`minerador-cli`**: comandos pra rodar no terminal, em script ou em tarefa agendada do Windows. É o motor do coletor do painel.
-- **`minerador-mcp`**: servidor MCP, pra plugar no Claude Desktop e pedir as buscas direto no chat.
+Digite uma palavra, escolha o país e veja todos os anúncios ativos daquele nicho:<br>
+a copy, o vídeo, pra onde o anúncio leva e há quanto tempo ele está no ar.
 
-País padrão: **Brasil** (`BR`). Troca por `FBADS_COUNTRY=MX` ou passando `--country` em cada comando.
+![Node](https://img.shields.io/badge/Node.js-22%2B-339933?logo=node.js&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-pronto-0078D4?logo=windows&logoColor=white)
+![Grátis](https://img.shields.io/badge/custo-grátis-2EA043)
+![País](https://img.shields.io/badge/país%20padrão-Brasil-009C3B)
 
-## Instalação no Windows
+</div>
 
-Precisa do [Node.js 22 ou mais novo](https://nodejs.org) e do Git.
+---
+
+## ✨ O que ele faz
+
+Ele lê a **Biblioteca de Anúncios da Meta**, que é pública, e te entrega tudo organizado.
+
+| Você quer saber… | O minerador mostra |
+|---|---|
+| 🔎 Quem está anunciando no meu nicho? | Todos os anúncios ativos com a palavra que você buscar |
+| 🎬 Qual é o criativo? | O link do vídeo em HD ou das imagens |
+| ✍️ Qual é a copy? | O texto do anúncio, com todas as variações |
+| 🔗 Pra onde o anúncio leva? | O link real (WhatsApp, página de vendas…) |
+| 📅 Esse anúncio está funcionando? | Há quantos dias ele está no ar |
+| 📈 Essa oferta está escalando? | Quantas cópias do mesmo criativo estão rodando |
+| 🔄 O que mudou no concorrente? | O que ele ligou e desligou desde a última vez |
+
+> 💡 **Não precisa de login, de conta de anúncio nem de pagar nada.** Ele só lê o que a própria Meta já deixa público.
+
+---
+
+## 🚀 Começando em 3 passos
+
+Você só precisa ter o [Node.js](https://nodejs.org) (versão 22 ou mais nova) e o [Git](https://git-scm.com) instalados. Depois abra o **PowerShell** e siga:
+
+**1. Baixe o projeto**
 
 ```powershell
 git clone https://github.com/RafaelMarutaka/minerador-de-oferta.git
 cd minerador-de-oferta
+```
+
+**2. Instale**
+
+```powershell
 npm install
 npm run build
 npx playwright install chromium
 npm link
 ```
 
-O `npm link` deixa `minerador-cli` e `minerador-mcp` disponíveis em qualquer pasta. Pra conferir se está tudo certo:
+**3. Confira se está tudo certo**
 
 ```powershell
 minerador-cli doctor
 ```
 
-Ele abre um navegador invisível, faz uma busca de teste e diz se voltou anúncio.
+Se aparecer que encontrou anúncios, está pronto. 🎉
 
-## Comandos
+---
+
+## 🧭 Como usar
+
+Todos os comandos começam com `minerador-cli`. Os mais usados:
+
+**Buscar anúncios de um nicho**
 
 ```powershell
-minerador-cli                                        # lista todos os comandos
-minerador-cli search-ads --query "moldes" --limit 40  # anúncios ativos com a palavra, no Brasil
-minerador-cli search-ads --query "plantillas" --country MX
-minerador-cli list-advertisers --query "nome da página"   # acha o ID de uma página
-minerador-cli search-ads --page-id 123456789          # todos os anúncios de uma página
-minerador-cli get-ad --library-id 1234567890          # um anúncio completo
-minerador-cli diff-advertiser --page-id 123456789     # o que a página ligou e desligou desde a última vez
-minerador-cli ad-library-url --query "moldes"         # link da mesma busca pra abrir no navegador
-minerador-cli <comando> --help                        # o que cada comando aceita
+minerador-cli search-ads --query "moldes"
 ```
 
-`--json` devolve JSON, `--select` filtra os campos (ex.: `--select ads.library_id,ads.days_active`) e `--agent` é JSON compacto sem perguntas, bom pra script.
+**Buscar em outro país** (MX = México, AR = Argentina, US = Estados Unidos…)
 
-### Códigos de saída
+```powershell
+minerador-cli search-ads --query "plantillas" --country MX
+```
 
-| Código | Significado |
+**Ver todos os anúncios de um concorrente**
+
+```powershell
+minerador-cli list-advertisers --query "nome da página"
+minerador-cli search-ads --page-id 123456789
+```
+
+O primeiro comando acha o número da página. O segundo usa esse número pra trazer só os anúncios dela.
+
+**Abrir um anúncio completo**
+
+```powershell
+minerador-cli get-ad --library-id 1234567890
+```
+
+**Ver o que o concorrente mudou**
+
+```powershell
+minerador-cli diff-advertiser --page-id 123456789
+```
+
+Na primeira vez ele só "tira uma foto". Rodando de novo depois, ele mostra o que entrou e o que saiu.
+
+**Abrir a busca no navegador**
+
+```powershell
+minerador-cli ad-library-url --query "moldes"
+```
+
+> 🧩 Esqueceu um comando? Digite só `minerador-cli` pra ver a lista, ou `minerador-cli search-ads --help` pra ver as opções de um deles.
+
+---
+
+## 🧠 Como ler os resultados
+
+**📅 Tempo no ar é o melhor sinal.** Ninguém deixa um anúncio que dá prejuízo rodando por meses. Se ele está no ar há muito tempo, provavelmente está vendendo.
+
+**📈 Muitas cópias do mesmo criativo = oferta escalando.** Quando o anunciante duplica o mesmo vídeo pra vários públicos, é porque ele está apostando dinheiro naquilo.
+
+**⚠️ O que não existe em lugar nenhum:** vendas, faturamento e lucro de concorrente. Ninguém tem esses dados, nem ferramenta paga. O que dá pra fazer é ler os sinais acima.
+
+**⚠️ Gasto e alcance vêm vazios no Brasil e no México.** A Meta só mostra esses números pra anúncios na Europa e anúncios políticos. Vazio aqui é normal, não é erro.
+
+---
+
+## 🛟 Deu algum problema?
+
+| O que aconteceu | O que fazer |
 |---|---|
-| 0 | Deu certo (inclusive busca sem resultado) |
-| 1 | Erro inesperado |
-| 2 | Argumento faltando ou errado |
-| 3 | Não encontrado |
-| 4 | Chave de provedor recusada |
-| 5 | Falha na Meta, no navegador ou no provedor |
-| 7 | Sem crédito no provedor, ou limite de requisições |
-| 10 | Modo escolhido não configurado (chave faltando ou Chromium não instalado) |
+| A busca voltou vazia várias vezes | A Meta pausou suas buscas por um tempo. Espere alguns minutos |
+| Apareceu erro de Chromium | Rode `npx playwright install chromium` de novo |
+| Quero ver o navegador trabalhando | Rode `$env:FBADS_HEADED=1` antes do comando |
+| `minerador-cli` não é reconhecido | Rode `npm link` de novo dentro da pasta do projeto |
 
-## As 9 ferramentas
+---
 
-| Ferramenta | Comando | O que faz |
-|---|---|---|
-| `search_ads` | `search-ads` | Busca por palavra-chave ou todos os anúncios de uma página |
-| `list_advertisers` | `list-advertisers` | Acha o ID das páginas que anunciam com um termo |
-| `get_ad` | `get-ad` | Um anúncio completo: todos os criativos e variações de copy |
-| `view_ad_creative` | `view-ad-creative` | As imagens do anúncio |
-| `diff_advertiser` | `diff-advertiser` | O que a página começou e parou de rodar desde a última olhada |
-| `transcribe_ad` | `transcribe-ad` | Transcreve vídeo (só no modo `scrapecreators`) |
-| `get_eu_transparency` | `get-eu-transparency` | Gasto e alcance (só anúncios na União Europeia ou políticos) |
-| `ad_library_url` | `ad-library-url` | Gera o link da busca pra abrir no navegador |
-| `backend_status` | `backend-status` | Mostra qual modo está ativo e se custa dinheiro (`doctor` testa a instalação toda) |
+## 🤖 Usar dentro do Claude
 
-## Usar no Claude Desktop
-
-No arquivo `%APPDATA%\Claude\claude_desktop_config.json`:
+Dá pra pedir as buscas direto no chat do **Claude Desktop**. Abra o arquivo `%APPDATA%\Claude\claude_desktop_config.json` e coloque:
 
 ```json
 {
@@ -87,65 +150,101 @@ No arquivo `%APPDATA%\Claude\claude_desktop_config.json`:
 }
 ```
 
-Fecha o Claude Desktop por completo e abre de novo.
+Feche o Claude Desktop por completo e abra de novo. Aí é só pedir: *"minera anúncios de moldes no México"*.
 
-## O que dá pra saber, e o que não dá
+---
 
-- **Não existe dado de desempenho de concorrente.** Conversão, faturamento, CPA e ROAS de outro anunciante não são públicos em lugar nenhum. O sinal honesto é **tempo no ar** (`days_active`) e **quantas variações usam o mesmo criativo** (`variants_using_creative`). Anúncio rodando há meses provavelmente está dando lucro, mas isso é hipótese, não medição.
-- **Gasto e alcance vêm vazios** pra anúncio comercial no Brasil e no México. Só existem pra anúncios veiculados na União Europeia e anúncios políticos. Vazio é a resposta certa, não erro.
-- **A Meta limita quem busca demais.** O modo grátis usa um navegador de verdade. Se as buscas começarem a voltar vazias, espera uns minutos.
-- **Os links de vídeo expiram.** Baixa o que quiser guardar na hora.
-- Rode sem estar logado em nenhum perfil seu: a ferramenta não precisa de login.
+<details>
+<summary><b>⚙️ Configurações avançadas</b> (opcional, tudo funciona sem mexer aqui)</summary>
 
-## Configurações
+<br>
 
-Tudo opcional. Sem nada configurado, funciona no modo grátis pelo navegador.
+No PowerShell, uma configuração é ligada assim: `$env:FBADS_COUNTRY="MX"`.
 
-| Variável | Padrão | O que faz |
+| Variável | Padrão | Pra que serve |
 |---|---|---|
-| `FBADS_COUNTRY` | `BR` | País usado quando o comando não diz nenhum |
-| `FBADS_BACKEND` | `browser` | `browser` (grátis, usa Chromium), `scrapecreators` ou `apify` (pagos, rápidos) |
-| `SCRAPECREATORS_API_KEY` | | Chave do modo `scrapecreators` |
+| `FBADS_COUNTRY` | `BR` | País usado quando você não diz nenhum |
+| `FBADS_BACKEND` | `browser` | `browser` é grátis. `scrapecreators` e `apify` são pagos e mais rápidos |
+| `SCRAPECREATORS_API_KEY` | | Chave do modo `scrapecreators` (também libera transcrição de vídeo) |
 | `APIFY_TOKEN` | | Token do modo `apify` |
 | `APIFY_ACTOR` | `lite` | `full` usa o robô maior da Apify |
-| `META_ADS_ARCHIVE_TOKEN` | | Libera gasto e alcance da UE (token grátis da Meta) |
+| `META_ADS_ARCHIVE_TOKEN` | | Libera gasto e alcance de anúncios na Europa (token grátis da Meta) |
 | `META_GRAPH_VERSION` | | Versão da API da Meta usada com o token acima |
-| `FBADS_HEADED` | desligado | `1` mostra o navegador, pra ver por que uma busca voltou vazia |
+| `FBADS_HEADED` | desligado | `1` mostra o navegador enquanto ele busca |
 | `FBADS_HYDRATE_MS` | `9000` | Quanto tempo esperar a página carregar |
-| `FBADS_SCROLL_WAIT_MS` | `4000` | Pausa entre rolagens ao coletar |
-| `FBADS_RETRIES` | `1` | Novas tentativas quando o navegador volta vazio |
-| `FBADS_CACHE_DAYS` | `1` | Idade máxima do cache no modo `scrapecreators` (`0` sempre busca de novo) |
-| `FBADS_STORE_DIR` | pasta de dados do app | Onde o `diff_advertiser` guarda as fotos de cada página |
-| `FBADS_HTTP_PORT` | `8787` | Porta do modo `--http` |
-| `FBADS_HTTP_HOST` | `127.0.0.1` | Interface do modo `--http` |
-| `FBADS_HTTP_TOKEN` | | Token de acesso do modo `--http` |
-| `FBADS_HTTP_ALLOWED_ORIGINS` | | Sites que podem se conectar no modo `--http` |
-| `FBADS_SURFACE` | `full` | `search` mostra só 3 ferramentas que acham e rodam as outras |
-| `FBADS_TOOL_TIMEOUT_MS` | | Desiste de uma ferramenta depois desse tempo |
-| `FBADS_DEBUG` | `0` | `1` mostra mensagens de depuração |
+| `FBADS_SCROLL_WAIT_MS` | `4000` | Pausa entre uma rolagem e outra |
+| `FBADS_RETRIES` | `1` | Quantas vezes tentar de novo quando volta vazio |
+| `FBADS_CACHE_DAYS` | `1` | Por quantos dias reaproveitar uma busca paga |
+| `FBADS_STORE_DIR` | pasta do app | Onde ficam as "fotos" do comparador de concorrentes |
+| `FBADS_HTTP_PORT` | `8787` | Porta do modo servidor (`--http`) |
+| `FBADS_HTTP_HOST` | `127.0.0.1` | Endereço do modo servidor |
+| `FBADS_HTTP_TOKEN` | | Senha de acesso do modo servidor |
+| `FBADS_HTTP_ALLOWED_ORIGINS` | | Sites que podem se conectar ao modo servidor |
+| `FBADS_SURFACE` | `full` | `search` mostra menos ferramentas pro Claude |
+| `FBADS_TOOL_TIMEOUT_MS` | | Tempo máximo de cada busca |
+| `FBADS_DEBUG` | `0` | `1` mostra mensagens técnicas |
 
-## Nuvem (pra depois)
+</details>
 
-O `Dockerfile` já monta uma imagem com Chromium. Num servidor:
+<details>
+<summary><b>🛠️ Todos os comandos</b></summary>
+
+<br>
+
+| Comando | O que faz |
+|---|---|
+| `search-ads` | Busca anúncios por palavra ou por página |
+| `list-advertisers` | Acha o número das páginas que anunciam com uma palavra |
+| `get-ad` | Mostra um anúncio completo |
+| `view-ad-creative` | Mostra as imagens de um anúncio |
+| `diff-advertiser` | Mostra o que uma página ligou e desligou |
+| `transcribe-ad` | Transcreve o áudio de um vídeo (só no modo pago `scrapecreators`) |
+| `get-eu-transparency` | Gasto e alcance (só Europa e anúncios políticos) |
+| `ad-library-url` | Gera o link da busca pra abrir no navegador |
+| `backend-status` | Mostra qual modo está ligado e se custa dinheiro |
+| `doctor` | Testa se a instalação está funcionando |
+
+Opções úteis em qualquer comando: `--json` (resultado em JSON), `--limit 40` (quantos anúncios trazer) e `--select ads.library_id,ads.days_active` (só os campos que você quer).
+
+**Códigos de saída** (pra quem usa em script): `0` deu certo, `1` erro inesperado, `2` comando errado, `3` não encontrado, `4` chave recusada, `5` falha na Meta ou no navegador, `7` sem crédito ou limite atingido, `10` modo não configurado.
+
+</details>
+
+<details>
+<summary><b>☁️ Rodar na nuvem</b> (pra depois)</summary>
+
+<br>
+
+O projeto já vem com um `Dockerfile` que inclui o navegador. Num servidor:
 
 ```bash
 npm install && npm run build
 docker build -t minerador .
-docker run -p 8787:8787 -e FBADS_HTTP_TOKEN=um-token-seu minerador
+docker run -p 8787:8787 -e FBADS_HTTP_TOKEN=uma-senha-sua minerador
 ```
 
-Isso sobe o servidor MCP por HTTP. Pro coletor diário rodar na nuvem em vez do PC, é só agendar os comandos `minerador-cli` no servidor.
+</details>
 
-## Estrutura
+<details>
+<summary><b>📁 Como o projeto é organizado</b></summary>
+
+<br>
 
 ```
-src/                 o minerador (ferramentas, leitura da Biblioteca, modos)
-packages/nucleo/     núcleo que gera o MCP e a CLI a partir das ferramentas
-tests/               testes (npm test)
+src/              o minerador: buscas, leitura da Biblioteca e comandos
+packages/nucleo/  o núcleo que transforma as ferramentas em comandos e no servidor do Claude
+tests/            testes automáticos (npm test)
+licenses/         avisos de licença dos componentes
 ```
 
-## Licença
+</details>
 
-MIT, de Rafael Marutaka. Componentes de código aberto usados no projeto têm os avisos de licença na pasta `licenses/`.
+---
 
-Não tem ligação com a Meta Platforms, Inc.
+<div align="center">
+
+Feito por **Rafael Marutaka** · Licença MIT
+
+<sub>Não tem ligação com a Meta Platforms, Inc.</sub>
+
+</div>
