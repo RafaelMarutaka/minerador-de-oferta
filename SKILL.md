@@ -25,6 +25,11 @@ Se não existir, a instalação está no README. Não rode comandos até ele res
 
 ## Como usar
 
+Pra mostrar resultado pro Rafael ler, prefira o comando simples em português:
+`minerador moldes`, `minerador plantillas --mx`, `minerador pagina <nome>`,
+`minerador concorrente <número>`, `minerador mudou <número>`, `minerador anuncio <número>`.
+Pra processar dados, use `minerador-cli ... --agent` (JSON).
+
 - País padrão é BR. Pra México use `--country MX`.
 - Pra um concorrente específico, rode `list-advertisers` antes e use o `page_id` no `search-ads`. Busca por palavra traz qualquer um que anunciou com ela.
 - `search-ads` pra decidir o que importa, `get-ad` só nos 2 ou 3 que valem estudar.

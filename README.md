@@ -57,7 +57,7 @@ npm link
 **3. Confira se está tudo certo**
 
 ```powershell
-minerador-cli doctor
+minerador testar
 ```
 
 Se aparecer que encontrou anúncios, está pronto. 🎉
@@ -66,50 +66,53 @@ Se aparecer que encontrou anúncios, está pronto. 🎉
 
 ## 🧭 Como usar
 
-Todos os comandos começam com `minerador-cli`. Os mais usados:
-
-**Buscar anúncios de um nicho**
+É só digitar `minerador` e o que você quer procurar. Sem aspas, sem complicação.
 
 ```powershell
-minerador-cli search-ads --query "moldes"
+minerador moldes
 ```
 
-**Buscar em outro país** (MX = México, AR = Argentina, US = Estados Unidos…)
+Pronto. Ele mostra as páginas que mais aparecem e os anúncios do mais forte pro mais fraco:
 
-```powershell
-minerador-cli search-ads --query "plantillas" --country MX
+```
+⛏️  "moldes" · Brasil · 30 anúncios
+
+🏆 Páginas que mais aparecem
+   1. Ateliê Exemplo — 6 anúncios, o mais antigo com 94 dias no ar
+
+📋 Anúncios, do mais forte pro mais fraco
+
+ 1. 🔥 Ateliê Exemplo · 94 dias no ar · 7 cópias do criativo
+     Vídeo · Botão: Enviar mensagem · Leva pra: WhatsApp
+     "Começo da copy do anúncio…"
+     🎬 link do vídeo
+     🔗 link do anúncio na Biblioteca
 ```
 
-**Ver todos os anúncios de um concorrente**
+### Mais jeitos de buscar
 
-```powershell
-minerador-cli list-advertisers --query "nome da página"
-minerador-cli search-ads --page-id 123456789
-```
+| Quero… | Digito |
+|---|---|
+| Buscar várias palavras | `minerador moldes de costura` |
+| Buscar no México | `minerador plantillas --mx` |
+| Buscar em outro país | `--ar` Argentina, `--co` Colômbia, `--cl` Chile, `--us` EUA… |
+| Ver só vídeos | `minerador moldes --videos` |
+| Trazer mais anúncios | `minerador moldes -n 60` |
+| Salvar numa planilha do Excel | `minerador moldes --planilha` |
+| Abrir a busca no navegador | `minerador abrir moldes` |
 
-O primeiro comando acha o número da página. O segundo usa esse número pra trazer só os anúncios dela.
+### Espiar um concorrente
 
-**Abrir um anúncio completo**
+| Quero… | Digito |
+|---|---|
+| Achar o número da página | `minerador pagina Ateliê Exemplo` |
+| Ver todos os anúncios dela | `minerador concorrente 123456789` |
+| Ver o que ela ligou e desligou | `minerador mudou 123456789` |
+| Abrir um anúncio completo | `minerador anuncio 1234567890` |
 
-```powershell
-minerador-cli get-ad --library-id 1234567890
-```
+No `mudou`, a primeira vez só "tira uma foto". Rodando de novo depois de uns dias, ele mostra o que entrou e o que saiu.
 
-**Ver o que o concorrente mudou**
-
-```powershell
-minerador-cli diff-advertiser --page-id 123456789
-```
-
-Na primeira vez ele só "tira uma foto". Rodando de novo depois, ele mostra o que entrou e o que saiu.
-
-**Abrir a busca no navegador**
-
-```powershell
-minerador-cli ad-library-url --query "moldes"
-```
-
-> 🧩 Esqueceu um comando? Digite só `minerador-cli` pra ver a lista, ou `minerador-cli search-ads --help` pra ver as opções de um deles.
+> 🧩 Esqueceu algo? Digite `minerador ajuda`.
 
 ---
 
@@ -132,7 +135,7 @@ minerador-cli ad-library-url --query "moldes"
 | A busca voltou vazia várias vezes | A Meta pausou suas buscas por um tempo. Espere alguns minutos |
 | Apareceu erro de Chromium | Rode `npx playwright install chromium` de novo |
 | Quero ver o navegador trabalhando | Rode `$env:FBADS_HEADED=1` antes do comando |
-| `minerador-cli` não é reconhecido | Rode `npm link` de novo dentro da pasta do projeto |
+| `minerador` não é reconhecido | Rode `npm link` de novo dentro da pasta do projeto |
 
 ---
 
@@ -187,9 +190,11 @@ No PowerShell, uma configuração é ligada assim: `$env:FBADS_COUNTRY="MX"`.
 </details>
 
 <details>
-<summary><b>🛠️ Todos os comandos</b></summary>
+<summary><b>🛠️ Comandos avançados</b> (<code>minerador-cli</code>, pra scripts e JSON)</summary>
 
 <br>
+
+O `minerador` é o jeito fácil. Por trás dele existe o `minerador-cli`, que devolve os dados crus em JSON pra quem quer automatizar:
 
 | Comando | O que faz |
 |---|---|

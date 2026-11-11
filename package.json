@@ -6,6 +6,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
+    "minerador": "dist/minerador.js",
     "minerador-mcp": "dist/mcp.js",
     "minerador-cli": "dist/cli.js"
   },
