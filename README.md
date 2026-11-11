@@ -124,7 +124,7 @@ O painel coleta suas palavras **todo dia sozinho**, guarda o histórico e mostra
 
 | Aba | O que mostra |
 |---|---|
-| 🔥 **Ofertas** | Anúncios do mais forte pro mais fraco, com filtros de nicho, país, destino (WhatsApp ou página), formato e tempo no ar |
+| 🔥 **Ofertas** | Radar de ofertas que começaram a rodar em cada dia (clique num dia pra filtrar), atalhos como **Novas da semana** e **Novas escalando**, ordem das mais novas pras mais antigas, filtros de nicho, país, destino e formato. Clicando num anúncio abre o vídeo, a copy inteira (com botão de copiar) e os detalhes; as setas do teclado passam de um pro outro |
 | 📈 **Crescendo** | Páginas que mais ganharam anúncios nos últimos dias. É aqui que aparece a oferta escalando |
 | 🆕 **Páginas novas** | Quem começou a anunciar nas suas palavras nos últimos 3 dias |
 | ⭐ **Salvos** | Seu swipe file. Ao salvar, o vídeo é baixado pro seu PC na hora, com espaço pra anotação |

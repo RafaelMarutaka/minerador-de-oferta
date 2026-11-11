@@ -90,7 +90,7 @@ function rotas(db: SupabaseClient, config: ConfigPainel, estado: { coletando: bo
 
     if (metodo === "GET" && recurso === "ofertas") {
       const p = url.searchParams;
-      let q = db.from("ofertas").select("*");
+      let q = db.from("ofertas").select("*", { count: "exact" });
       if (p.get("agora") !== "0") q = q.eq("no_ar_agora", true);
       if (p.get("lt") !== "0") q = q.eq("low_ticket", true);
       if (p.get("ignoradas") !== "1") q = q.eq("ignorada", false);
@@ -102,14 +102,35 @@ function rotas(db: SupabaseClient, config: ConfigPainel, estado: { coletando: bo
       if (p.get("destino") === "mensagem") q = q.in("destino", ["WhatsApp", "Direct do Instagram", "Mensagem"]);
       else if (p.get("destino") === "site") q = q.not("destino", "in", '("WhatsApp","Direct do Instagram","Mensagem")');
       const minDias = Number(p.get("min_dias") ?? "0");
-      if (minDias > 0) q = q.gte("dias_no_ar", minDias);
+      if (minDias > 0) q = q.gte("idade_dias", minDias);
+      const maxDias = Number(p.get("max_dias") ?? "0");
+      if (maxDias > 0) q = q.lte("idade_dias", maxDias);
+      if (p.get("dia")) q = q.eq("comecou_em", p.get("dia"));
+      const minCopias = Number(p.get("min_copias") ?? "0");
+      if (minCopias > 0) q = q.gte("copias", minCopias);
       const texto = (p.get("q") ?? "").trim().replace(/[%*,()"\\]/g, " ").trim();
       if (texto) q = q.or(`copy.ilike.*${texto}*,pagina.ilike.*${texto}*,titulo.ilike.*${texto}*`);
-      const ordem = p.get("ordem") ?? "forca";
-      const coluna = ordem === "dias" ? "dias_no_ar" : ordem === "novos" ? "primeira_vez" : ordem === "copias" ? "copias" : "forca";
-      q = q.order(coluna, { ascending: false, nullsFirst: false }).limit(Math.min(Number(p.get("limite") ?? "60") || 60, 200));
-      const { data, error } = await q;
+      const ordens: Record<string, [string, boolean]> = {
+        recentes: ["idade_dias", true],
+        antigos: ["idade_dias", false],
+        forca: ["forca", false],
+        copias: ["copias", false],
+        achados: ["primeira_vez", false],
+      };
+      const [coluna, crescente] = ordens[p.get("ordem") ?? "recentes"] ?? ordens["recentes"]!;
+      q = q.order(coluna, { ascending: crescente, nullsFirst: false });
+      if (coluna !== "forca") q = q.order("forca", { ascending: false, nullsFirst: false });
+      const limite = Math.min(Number(p.get("limite") ?? "48") || 48, 200);
+      const desde = Math.max(Number(p.get("desde") ?? "0") || 0, 0);
+      const { data, error, count } = await q.range(desde, desde + limite - 1);
       checar("Ofertas", error);
+      return { itens: data ?? [], total: count ?? 0 };
+    }
+
+    if (metodo === "GET" && recurso === "radar") {
+      const dias = Math.min(Math.max(Number(url.searchParams.get("dias") ?? "30") || 30, 7), 90);
+      const { data, error } = await db.rpc("radar_novidades", { dias, so_low_ticket: url.searchParams.get("lt") !== "0" });
+      checar("Radar", error);
       return data ?? [];
     }
 
@@ -155,7 +176,7 @@ function rotas(db: SupabaseClient, config: ConfigPainel, estado: { coletando: bo
       const [pagina, dias, anuncios] = await Promise.all([
         db.from("paginas").select("*").eq("page_id", id).maybeSingle(),
         db.from("paginas_por_dia").select("dia, anuncios").eq("page_id", id).order("dia"),
-        db.from("ofertas").select("*").eq("page_id", id).order("forca", { ascending: false }).limit(100),
+        db.from("ofertas").select("*").eq("page_id", id).order("idade_dias", { ascending: true, nullsFirst: false }).limit(100),
       ]);
       checar("Página", pagina.error ?? dias.error ?? anuncios.error);
       if (!pagina.data) throw new Erro(404, "Página não encontrada.");

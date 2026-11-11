@@ -248,3 +248,67 @@ as $$
   left join public.paginas p on p.page_id = u.page_id;
 $$;
 revoke all on function public.paginas_crescendo(integer, boolean) from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Idade de cada oferta e radar de novidades (terceira versão)
+-- ---------------------------------------------------------------------------
+
+drop view public.ofertas;
+create view public.ofertas with (security_invoker = true) as
+with ultimo as (
+  select max(dia) as d from public.aparicoes
+),
+pagina_hoje as (
+  select ap.page_id, count(distinct ap.library_id)::int as n
+  from public.aparicoes ap, ultimo
+  where ap.dia = ultimo.d
+  group by ap.page_id
+),
+achados as (
+  select ap.library_id,
+         array_agg(distinct b.termo order by b.termo) as termos,
+         array_agg(distinct b.pais order by b.pais) as paises,
+         array_agg(distinct b.nicho order by b.nicho) filter (where b.nicho is not null) as nichos,
+         max(ap.dia) as visto_em
+  from public.aparicoes ap
+  join public.buscas b on b.id = ap.busca_id
+  group by ap.library_id
+)
+select a.library_id, a.page_id, p.nome as pagina, p.foto_url, p.url as pagina_url,
+       a.pais, a.formato, a.botao, a.destino, a.link_url, a.dominio, a.titulo, a.copy,
+       a.dias_no_ar, a.copias, a.inicio, a.video_url, a.imagem_url, a.plataformas,
+       a.link_biblioteca, a.salvo, a.nota, a.arquivo_video, a.primeira_vez, a.ultima_vez,
+       a.low_ticket, a.pontos_lt, a.sinais,
+       (pi.page_id is not null) as ignorada,
+       coalesce(ph.n, 0) as anuncios_da_pagina,
+       ac.termos, ac.paises, ac.nichos, ac.visto_em,
+       (ac.visto_em = (select d from ultimo)) as no_ar_agora,
+       coalesce(a.inicio, ac.visto_em - coalesce(a.dias_no_ar, 0)) as comecou_em,
+       greatest(current_date - coalesce(a.inicio, ac.visto_em - coalesce(a.dias_no_ar, 0)), 0) as idade_dias,
+       round((least(coalesce(a.copias, 1), 20) * 3
+            + least(coalesce(a.dias_no_ar, 0), 180) / 6.0
+            + least(coalesce(ph.n, 0), 30) * 2)::numeric, 1) as forca
+from public.anuncios a
+left join public.paginas p on p.page_id = a.page_id
+left join public.paginas_ignoradas pi on pi.page_id = a.page_id
+left join pagina_hoje ph on ph.page_id = a.page_id
+left join achados ac on ac.library_id = a.library_id;
+revoke all on public.ofertas from anon, authenticated;
+
+create or replace function public.radar_novidades(dias integer default 14, so_low_ticket boolean default true)
+returns table (dia date, ofertas integer)
+language sql stable security invoker set search_path = ''
+as $$
+  with serie as (
+    select (current_date - g)::date as dia from generate_series(0, greatest(dias, 1) - 1) g
+  ),
+  contagem as (
+    select o.comecou_em as dia, count(*)::int as n
+    from public.ofertas o
+    where o.no_ar_agora and not o.ignorada and (not so_low_ticket or o.low_ticket)
+      and o.comecou_em >= current_date - greatest(dias, 1) + 1
+    group by o.comecou_em
+  )
+  select s.dia, coalesce(c.n, 0) from serie s left join contagem c on c.dia = s.dia order by s.dia;
+$$;
+revoke all on function public.radar_novidades(integer, boolean) from public, anon, authenticated;

@@ -5,141 +5,290 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Minerador de Oferta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:wght@400;500;600&display=swap">
 <style>
 :root {
-  --bg: #f6f5f2; --surface: #ffffff; --surface-2: #f0eee9; --border: #e3e0d8; --text: #1c1b19; --muted: #6b6860;
-  --accent: #e8590c; --accent-soft: #fff1e6; --green: #2b8a3e; --green-soft: #e6f4ea; --blue: #1c7ed6; --blue-soft: #e7f1fb;
-  --red: #c92a2a; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04); --radius: 14px;
+  --pedra: #e9edf1; --placa: #ffffff; --veio: #f3f5f8; --linha: #d6dce3; --linha-forte: #b9c3ce;
+  --tinta: #17212b; --cinza: #5b6876; --suave: #8693a1;
+  --ouro: #9a6b00; --ouro-fundo: #f6d667; --ouro-tinta: #3d2b00;
+  --menta: #0b7f62; --menta-fundo: #cdeee2;
+  --azul: #1d5fa8; --azul-fundo: #dce9f7;
+  --perigo: #b4361a;
+  --sombra: 0 10px 30px -12px rgba(23, 33, 43, .28);
+  --titulo: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --texto: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121211; --surface: #1b1b19; --surface-2: #242421; --border: #2f2f2b; --text: #f1efe9; --muted: #9c998f;
-    --accent: #ff8a3d; --accent-soft: #2d1d11; --green: #69db7c; --green-soft: #142a19; --blue: #74c0fc; --blue-soft: #10222f;
-    --red: #ff8787; --shadow: 0 1px 2px rgba(0,0,0,.3);
-  }
+:root[data-tema="escuro"] {
+  --pedra: #10161d; --placa: #18212b; --veio: #1f2a36; --linha: #2c3947; --linha-forte: #3d4d5f;
+  --tinta: #e8edf2; --cinza: #9aa8b6; --suave: #6f7f8f;
+  --ouro: #f2c14e; --ouro-fundo: #f2c14e; --ouro-tinta: #2a1d00;
+  --menta: #45d3a8; --menta-fundo: #103a2f;
+  --azul: #7fb4ee; --azul-fundo: #142b44;
+  --perigo: #ff8a6b;
+  --sombra: 0 16px 40px -14px rgba(0, 0, 0, .7);
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--pedra); color: var(--tinta); font: 16px/1.5 var(--texto); }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: inherit; }
-a.btn { text-decoration: none; }
-.topo { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
-.topo-in { max-width: 1320px; margin: 0 auto; padding: 14px 20px 0; }
-.linha1 { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.marca { font-weight: 700; font-size: 19px; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
-.stats { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
-.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--muted); }
-.stat b { color: var(--text); font-weight: 600; }
-.btn { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-.btn:hover { border-color: var(--muted); }
-.btn.prim { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.prim:hover { filter: brightness(1.05); }
-.btn.peq { padding: 5px 10px; font-size: 13px; border-radius: 8px; }
-.btn:disabled { opacity: .6; cursor: default; }
-.abas { display: flex; gap: 4px; margin-top: 12px; overflow-x: auto; }
-.aba { border: 0; background: none; padding: 10px 14px; cursor: pointer; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; white-space: nowrap; }
-.aba[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
-main { max-width: 1320px; margin: 0 auto; padding: 20px; }
-.filtros { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
-.filtros input[type=search], .filtros select, .campo { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; min-height: 38px; }
-.filtros input[type=search] { flex: 1 1 220px; min-width: 180px; }
-.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); padding: 0 6px; }
-.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
-.midia { position: relative; aspect-ratio: 4 / 5; background: var(--surface-2); display: grid; place-items: center; overflow: hidden; }
-.midia img, .midia video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.midia .play { position: absolute; inset: auto auto 12px 12px; background: rgba(0,0,0,.65); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
-.midia .vazio { color: var(--muted); font-size: 13px; padding: 20px; text-align: center; }
-.forca { position: absolute; top: 10px; right: 10px; background: var(--accent); color: #fff; border-radius: 999px; padding: 3px 10px; font-weight: 700; font-size: 13px; }
-.corpo { padding: 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.pag { font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-size: 15px; }
-.pag:hover { text-decoration: underline; }
-.selos { display: flex; flex-wrap: wrap; gap: 6px; }
-.selo { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
-.selo.quente { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.selo.verde { background: var(--green-soft); color: var(--green); font-weight: 600; }
-.selo.azul { background: var(--blue-soft); color: var(--blue); }
-.copy { font-size: 14px; color: var(--text); white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
-.copy.aberta { -webkit-line-clamp: unset; }
-.mais { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0; font-size: 13px; text-align: left; }
-.termos { display: flex; gap: 4px; flex-wrap: wrap; }
-.sinais { font-size: 12px; color: var(--muted); line-height: 1.4; }
-.termo { font-size: 11px; color: var(--muted); border: 1px dashed var(--border); border-radius: 6px; padding: 1px 6px; }
-.acoes { display: flex; gap: 6px; margin-top: auto; flex-wrap: wrap; }
-.salvo { color: var(--accent); border-color: var(--accent); }
-.lista { display: flex; flex-direction: column; gap: 10px; }
-.linha { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.linha .pos { width: 28px; color: var(--muted); font-weight: 600; text-align: right; }
-.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); object-fit: cover; flex: none; }
-.linha .nome { flex: 1 1 200px; min-width: 0; }
-.linha .nome small { display: block; color: var(--muted); }
-.cresc { font-weight: 700; color: var(--green); min-width: 90px; }
-.cresc.zero { color: var(--muted); font-weight: 500; }
-.vazio-g { text-align: center; color: var(--muted); padding: 60px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
-.vazio-g h3 { color: var(--text); margin: 0 0 6px; }
-.form-busca { display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; }
-.form-busca input { flex: 1 1 200px; }
-.interruptor { position: relative; width: 40px; height: 22px; background: var(--border); border-radius: 999px; border: 0; cursor: pointer; flex: none; }
-.interruptor::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
-.interruptor[aria-checked="true"] { background: var(--green); }
+:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* barra do topo */
+.barra { background: var(--placa); border-bottom: 1px solid var(--linha); position: sticky; top: 0; z-index: 30; }
+.barra-in { max-width: 1380px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 22px; min-height: 64px; flex-wrap: wrap; }
+.marca { font: 800 21px/1 var(--titulo); letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.marca svg { width: 26px; height: 26px; }
+.abas { display: flex; gap: 2px; align-self: stretch; overflow-x: auto; scrollbar-width: none; }
+.aba { border: 0; background: none; padding: 0 14px; cursor: pointer; color: var(--cinza); font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.aba:hover { color: var(--tinta); }
+.aba[aria-selected="true"] { color: var(--tinta); border-bottom-color: var(--tinta); }
+.aba .n { font-size: 12px; background: var(--veio); border-radius: 999px; padding: 1px 7px; color: var(--cinza); }
+.direita { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.status { font-size: 14px; color: var(--cinza); white-space: nowrap; }
+.status b { color: var(--tinta); font-weight: 600; }
+.btn { border: 1px solid var(--linha-forte); background: var(--placa); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; line-height: 1.2; }
+.btn:hover { border-color: var(--tinta); }
+.btn.forte { background: var(--tinta); border-color: var(--tinta); color: var(--placa); }
+.btn.forte:hover { filter: brightness(1.15); }
+.btn.peq { padding: 6px 10px; font-size: 14px; }
+.btn.so-icone { padding: 8px; }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.marcado { border-color: var(--ouro); color: var(--ouro); }
+
+main { max-width: 1380px; margin: 0 auto; padding: 24px; }
+
+/* radar */
+.radar { background: var(--placa); border: 1px solid var(--linha); border-radius: 16px; padding: 20px 22px 14px; margin-bottom: 20px; }
+.radar-topo { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.radar h1 { font: 700 26px/1.1 var(--titulo); letter-spacing: -.02em; margin: 0; }
+.radar .sub { color: var(--cinza); }
+.radar .acoes-radar { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.barras { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; height: 128px; align-items: end; }
+.barra-dia { border: 0; background: none; padding: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; cursor: pointer; position: relative; }
+.barra-dia .col { background: var(--menta-fundo); border-radius: 4px 4px 2px 2px; min-height: 3px; transition: background .15s; transform-origin: bottom; }
+.barra-dia .col.cheia { background: var(--menta); }
+.barra-dia:hover .col { background: var(--menta); filter: brightness(1.1); }
+.barra-dia[aria-pressed="true"] .col { background: var(--ouro-fundo); outline: 2px solid var(--ouro); }
+.barra-dia .num { font: 700 12px/1 var(--titulo); color: var(--cinza); text-align: center; margin-bottom: 4px; min-height: 12px; }
+.eixo { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; margin-top: 6px; font-size: 12px; color: var(--suave); text-align: center; }
+.eixo span.hoje { color: var(--tinta); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .barras.entrando .col { animation: crescer .6s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i) * 18ms); }
+  @keyframes crescer { from { transform: scaleY(0); } }
+}
+
+/* atalhos e ferramentas */
+.atalhos { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.atalho { border: 1px solid var(--linha-forte); background: var(--placa); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-weight: 600; font-size: 15px; }
+.atalho:hover { border-color: var(--tinta); }
+.atalho[aria-pressed="true"] { background: var(--tinta); color: var(--placa); border-color: var(--tinta); }
+.ferramentas { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.busca { position: relative; flex: 1 1 260px; }
+.busca input { width: 100%; background: var(--placa); border: 1px solid var(--linha-forte); border-radius: 8px; padding: 9px 40px 9px 12px; }
+.busca kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 600 12px var(--texto); color: var(--suave); border: 1px solid var(--linha); border-radius: 4px; padding: 1px 6px; }
+.campo { background: var(--placa); border: 1px solid var(--linha-forte); border-radius: 8px; padding: 9px 12px; }
+.chk { display: inline-flex; align-items: center; gap: 6px; color: var(--cinza); font-size: 15px; cursor: pointer; }
+.chk input { width: 16px; height: 16px; accent-color: var(--tinta); }
+.vista { display: inline-flex; border: 1px solid var(--linha-forte); border-radius: 8px; overflow: hidden; }
+.vista button { border: 0; background: var(--placa); padding: 8px 10px; cursor: pointer; color: var(--cinza); }
+.vista button[aria-pressed="true"] { background: var(--tinta); color: var(--placa); }
+.mais-filtros { display: none; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 14px; background: var(--placa); border: 1px solid var(--linha); border-radius: 12px; }
+.mais-filtros.aberto { display: flex; }
+.contagem { color: var(--cinza); margin: 4px 0 14px; font-size: 15px; }
+.contagem b { color: var(--tinta); }
+.limpar { border: 0; background: none; color: var(--azul); cursor: pointer; padding: 0; font-weight: 600; }
+
+/* grade de ofertas */
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 18px; }
+.oferta { background: var(--placa); border: 1px solid var(--linha); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.oferta:hover { border-color: var(--linha-forte); box-shadow: var(--sombra); }
+.midia { position: relative; aspect-ratio: 4 / 5; background: var(--veio); overflow: hidden; }
+.midia img, .midia video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.midia .sem { position: absolute; inset: 0; display: grid; place-items: center; color: var(--suave); font-size: 14px; padding: 20px; text-align: center; }
+.idade { position: absolute; left: 10px; top: 10px; background: var(--placa); color: var(--tinta); border-radius: 999px; padding: 4px 10px; font: 700 13px/1.2 var(--titulo); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.idade.nova { background: var(--menta); color: #fff; }
+:root[data-tema="escuro"] .idade.nova { color: #062a20; }
+.forca { position: absolute; right: 10px; top: 10px; background: var(--ouro-fundo); color: var(--ouro-tinta); border-radius: 999px; padding: 4px 10px; font: 800 13px/1.2 var(--titulo); }
+.tem-video { position: absolute; left: 10px; bottom: 10px; background: rgba(10, 15, 20, .72); color: #fff; border-radius: 999px; padding: 4px 10px; font-size: 13px; font-weight: 600; }
+.corpo { padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+.pagina-nome { font: 700 17px/1.25 var(--titulo); letter-spacing: -.01em; margin: 0; }
+.fatos { display: flex; flex-wrap: wrap; gap: 6px; }
+.fato { font-size: 13px; padding: 2px 8px; border-radius: 6px; background: var(--veio); color: var(--cinza); font-weight: 500; }
+.fato.copias { background: var(--ouro-fundo); color: var(--ouro-tinta); font-weight: 600; }
+.fato.destino { background: var(--azul-fundo); color: var(--azul); }
+.copy { font-size: 15px; color: var(--tinta); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+.acoes { display: flex; gap: 6px; margin-top: auto; padding-top: 4px; }
+.acoes .btn { flex: 0 0 auto; }
+.mais { text-align: center; margin: 26px 0 8px; }
+
+/* lista compacta */
+.lista-ofertas { display: flex; flex-direction: column; gap: 8px; }
+.linha-oferta { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; background: var(--placa); border: 1px solid var(--linha); border-radius: 10px; padding: 8px 12px 8px 8px; cursor: pointer; }
+.linha-oferta:hover { border-color: var(--linha-forte); }
+.mini { width: 64px; height: 80px; border-radius: 6px; background: var(--veio); object-fit: cover; display: block; }
+.linha-oferta .meio { min-width: 0; }
+.linha-oferta .copy { -webkit-line-clamp: 1; font-size: 14px; color: var(--cinza); }
+.linha-oferta .topo-linha { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.linha-oferta .idade-txt { font: 700 14px var(--titulo); color: var(--cinza); }
+.linha-oferta .idade-txt.nova { color: var(--menta); }
+
+/* gaveta do anúncio */
+.veu { position: fixed; inset: 0; background: rgba(8, 12, 16, .5); z-index: 64; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.veu.aberto { opacity: 1; pointer-events: auto; }
+.gaveta { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); background: var(--placa); z-index: 65; transform: translateX(100%); transition: transform .25s cubic-bezier(.2, .8, .2, 1); display: flex; flex-direction: column; border-left: 1px solid var(--linha); }
+.gaveta.aberta { transform: none; }
+@media (prefers-reduced-motion: reduce) { .gaveta, .veu { transition: none; } .oferta { transition: none; } }
+.gaveta-topo { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--linha); }
+.gaveta-topo .titulo { font: 700 18px/1.2 var(--titulo); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
+.gaveta-corpo { overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 18px; }
+.gaveta-midia { background: #000; border-radius: 10px; overflow: hidden; max-height: 62vh; min-height: 280px; display: grid; place-items: center; }
+.gaveta-midia video, .gaveta-midia img { width: 100%; max-height: 62vh; object-fit: contain; display: block; }
+.gaveta-midia .sem { color: #aab; padding: 50px 20px; text-align: center; }
+.numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.numero { background: var(--veio); border-radius: 10px; padding: 10px 12px; }
+.numero b { display: block; font: 800 22px/1.1 var(--titulo); letter-spacing: -.02em; }
+.numero span { font-size: 13px; color: var(--cinza); }
+.numero.nova b { color: var(--menta); }
+.secao h3 { font: 700 15px/1.2 var(--titulo); margin: 0 0 8px; display: flex; align-items: center; gap: 10px; }
+.secao h3 .btn { margin-left: auto; }
+.copy-inteira { white-space: pre-wrap; font-size: 15px; background: var(--veio); border-radius: 10px; padding: 12px 14px; margin: 0; max-height: 300px; overflow-y: auto; }
+.lista-sinais { margin: 0; padding-left: 20px; color: var(--cinza); font-size: 15px; }
+.detalhes { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 15px; margin: 0; }
+.detalhes dt { color: var(--cinza); }
+.detalhes dd { margin: 0; overflow-wrap: anywhere; }
+.botoes { display: flex; flex-wrap: wrap; gap: 8px; }
+textarea.nota { width: 100%; min-height: 80px; resize: vertical; background: var(--veio); border: 1px solid var(--linha); border-radius: 8px; padding: 10px; font-size: 15px; }
+.dica-teclado { font-size: 13px; color: var(--suave); }
+
+/* listas de páginas e palavras */
+.cabeca { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+.cabeca h1 { font: 700 26px/1.1 var(--titulo); letter-spacing: -.02em; margin: 0; }
+.cabeca p { margin: 0; color: var(--cinza); max-width: 70ch; }
+.cabeca .acoes-cabeca { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.linhas { display: flex; flex-direction: column; gap: 8px; }
+.linha { background: var(--placa); border: 1px solid var(--linha); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.pos { width: 26px; text-align: right; font: 700 15px var(--titulo); color: var(--suave); }
+.avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--veio); object-fit: cover; flex: none; }
+.linha .nome { flex: 1 1 220px; min-width: 0; }
+.linha .nome b { font-weight: 600; }
+.linha .nome small { display: block; color: var(--cinza); font-size: 14px; }
+.cresc { font: 800 20px var(--titulo); color: var(--menta); min-width: 70px; text-align: right; }
+.cresc.parado { color: var(--suave); font-weight: 600; font-size: 15px; }
+.form-palavra { display: flex; gap: 8px; flex-wrap: wrap; background: var(--placa); border: 1px solid var(--linha); border-radius: 12px; padding: 14px; margin-bottom: 18px; }
+.form-palavra input[name=termo] { flex: 1 1 240px; }
+.interruptor { position: relative; width: 42px; height: 24px; background: var(--linha-forte); border-radius: 999px; border: 0; cursor: pointer; flex: none; }
+.interruptor::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.interruptor[aria-checked="true"] { background: var(--menta); }
 .interruptor[aria-checked="true"]::after { transform: translateX(18px); }
-.fundo { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; z-index: 50; padding: 30px 16px; overflow-y: auto; }
-.fundo.aberto { display: block; }
-.modal { max-width: 1100px; margin: 0 auto; background: var(--bg); border-radius: 18px; padding: 22px; border: 1px solid var(--border); }
-.modal-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.modal-topo h2 { margin: 0; font-size: 20px; flex: 1; }
-.grafico { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 18px; }
-.grafico svg { width: 100%; height: 140px; display: block; }
-.aviso { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 60; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; }
-.aviso.on { opacity: 1; }
-.carregando { color: var(--muted); padding: 40px; text-align: center; }
-textarea.nota { width: 100%; min-height: 60px; resize: vertical; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 13px; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-@media (max-width: 640px) { .stats { margin-left: 0; } main { padding: 14px; } .topo { position: static; } }
+h2.sub-secao { font: 700 19px var(--titulo); margin: 30px 0 10px; }
+
+/* estados */
+.vazio { text-align: center; padding: 56px 20px; background: var(--placa); border: 1px dashed var(--linha-forte); border-radius: 14px; color: var(--cinza); }
+.vazio h2 { font: 700 20px var(--titulo); color: var(--tinta); margin: 0 0 6px; }
+.vazio p { margin: 0 auto; max-width: 52ch; }
+.esqueleto { background: var(--placa); border: 1px solid var(--linha); border-radius: 12px; height: 470px; position: relative; overflow: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  .esqueleto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--veio), transparent); animation: brilho 1.2s infinite; }
+  @keyframes brilho { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+}
+.aviso { position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 20px); background: var(--tinta); color: var(--placa); padding: 11px 18px; border-radius: 10px; font-size: 15px; z-index: 70; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; max-width: 92vw; }
+.aviso.on { opacity: 1; transform: translate(-50%, 0); }
+.modal-pagina { position: fixed; inset: 0; z-index: 60; background: rgba(8, 12, 16, .55); display: none; overflow-y: auto; padding: 32px 16px; }
+.modal-pagina.aberto { display: block; }
+.modal-caixa { max-width: 1140px; margin: 0 auto; background: var(--pedra); border-radius: 16px; padding: 22px; border: 1px solid var(--linha); }
+.grafico { background: var(--placa); border: 1px solid var(--linha); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+.grafico svg { width: 100%; height: 150px; display: block; }
+
+@media (max-width: 760px) {
+  .barra-in { padding: 8px 14px 0; gap: 10px; }
+  .abas { order: 3; width: 100%; min-height: 44px; }
+  .status { display: none; }
+  main { padding: 14px; }
+  .radar { padding: 16px 14px 10px; }
+  .barras { height: 96px; }
+  .eixo span:nth-child(even) { visibility: hidden; }
+  .numeros { grid-template-columns: repeat(2, 1fr); }
+  .linha-oferta { grid-template-columns: 56px minmax(0, 1fr); }
+  .linha-oferta .acoes { display: none; }
+  .busca kbd { display: none; }
+}
 </style>
 </head>
 <body>
-<header class="topo">
-  <div class="topo-in">
-    <div class="linha1">
-      <div class="marca"><span aria-hidden="true">⛏️</span> Minerador de Oferta</div>
-      <div class="stats" id="stats"></div>
-      <button class="btn prim" id="btn-coletar">Coletar agora</button>
-    </div>
-    <nav class="abas" role="tablist">
-      <button class="aba" role="tab" data-aba="ofertas" aria-selected="true">🔥 Ofertas</button>
-      <button class="aba" role="tab" data-aba="crescendo" aria-selected="false">📈 Crescendo</button>
-      <button class="aba" role="tab" data-aba="novidades" aria-selected="false">🆕 Páginas novas</button>
-      <button class="aba" role="tab" data-aba="salvos" aria-selected="false">⭐ Salvos</button>
-      <button class="aba" role="tab" data-aba="buscas" aria-selected="false">🔎 Palavras</button>
+<header class="barra">
+  <div class="barra-in">
+    <a class="marca" href="#ofertas" aria-label="Minerador de Oferta, início">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 25 L19 12" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M9 7 C15 3 24 5 28 12 C22 9 16 9 12 11 Z" fill="var(--ouro-fundo)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Minerador
+    </a>
+    <nav class="abas" role="tablist" aria-label="Seções">
+      <button class="aba" role="tab" data-aba="ofertas" aria-selected="true">Ofertas</button>
+      <button class="aba" role="tab" data-aba="crescendo" aria-selected="false">Crescendo</button>
+      <button class="aba" role="tab" data-aba="novidades" aria-selected="false">Páginas novas</button>
+      <button class="aba" role="tab" data-aba="salvos" aria-selected="false">Salvos</button>
+      <button class="aba" role="tab" data-aba="buscas" aria-selected="false">Palavras</button>
     </nav>
+    <div class="direita">
+      <span class="status" id="status"></span>
+      <button class="btn so-icone" id="tema" aria-label="Trocar tema claro ou escuro" title="Tema claro ou escuro">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="btn forte" id="btn-coletar">Coletar agora</button>
+    </div>
   </div>
 </header>
 
-<main id="conteudo"></main>
+<main id="conteudo" tabindex="-1"></main>
 
-<div class="fundo" id="fundo" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
-  <div class="modal" id="modal"></div>
-</div>
-<div class="aviso" id="aviso" role="status"></div>
+<div class="veu" id="veu"></div>
+<aside class="gaveta" id="gaveta" role="dialog" aria-modal="true" aria-labelledby="gaveta-titulo" aria-hidden="true"></aside>
+<div class="modal-pagina" id="modal-pagina" role="dialog" aria-modal="true" aria-labelledby="pagina-titulo"><div class="modal-caixa" id="modal-caixa"></div></div>
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
 <script>
 const PAISES = { BR: "Brasil", MX: "México", AR: "Argentina", CO: "Colômbia", CL: "Chile", PE: "Peru", EC: "Equador", US: "EUA", ES: "Espanha", PT: "Portugal", UY: "Uruguai", PY: "Paraguai", BO: "Bolívia", GT: "Guatemala", DO: "Rep. Dominicana", CR: "Costa Rica", PA: "Panamá", VE: "Venezuela" };
-const estado = { aba: "ofertas", filtros: { q: "", termo: "", nicho: "", pais: "", destino: "", formato: "", min_dias: "", ordem: "forca", agora: "1", lt: "1" }, opcoes: null, janela: 7 };
+const ATALHOS = [
+  { id: "semana", nome: "Novas da semana", f: { ordem: "recentes", max_dias: "7", min_dias: "", min_copias: "" } },
+  { id: "escalando", nome: "Novas escalando", f: { ordem: "copias", max_dias: "30", min_dias: "", min_copias: "2" } },
+  { id: "recentes", nome: "Todas, das mais novas", f: { ordem: "recentes", max_dias: "", min_dias: "", min_copias: "" } },
+  { id: "fortes", nome: "Mais fortes", f: { ordem: "forca", max_dias: "", min_dias: "", min_copias: "" } },
+  { id: "veteranas", nome: "Veteranas (90+ dias)", f: { ordem: "forca", max_dias: "", min_dias: "90", min_copias: "" } },
+];
+const PADRAO = { q: "", termo: "", nicho: "", pais: "", destino: "", formato: "", min_dias: "", max_dias: "", min_copias: "", dia: "", ordem: "recentes", agora: "1", lt: "1" };
+const guardado = (k, v) => { try { return localStorage.getItem(k) ?? v; } catch { return v; } };
+const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+const estado = { aba: "ofertas", f: { ...PADRAO }, atalho: "recentes", opcoes: null, radarDias: 30, vista: guardado("vista", "grade"), lista: [], total: 0, carregando: false, aberto: -1, janela: 7 };
+
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (n) => Number(n ?? 0).toLocaleString("pt-BR");
 const urlSegura = (u) => (/^https?:\/\//i.test(String(u ?? "")) ? String(u) : "");
+const catalogo = (t) => /\{\{[^}]+\}\}/.test(t ?? "");
+
+function idadeTexto(d) {
+  if (d == null) return "idade desconhecida";
+  if (d <= 0) return "começou hoje";
+  if (d === 1) return "começou ontem";
+  if (d < 60) return `há ${d} dias`;
+  const meses = Math.round(d / 30);
+  return meses < 24 ? `há ${meses} meses` : `há ${Math.round(d / 365)} anos`;
+}
+const nova = (o) => o.idade_dias != null && o.idade_dias <= 7;
 
 async function api(caminho, opcoes = {}) {
+  const mudanca = opcoes.method && opcoes.method !== "GET";
   const resp = await fetch(`/api/${caminho}`, {
     method: opcoes.method ?? "GET",
-    headers: opcoes.body ? { "content-type": "application/json", "x-minerador": "1" } : (opcoes.method && opcoes.method !== "GET" ? { "x-minerador": "1" } : {}),
+    headers: { ...(mudanca ? { "x-minerador": "1" } : {}), ...(opcoes.body ? { "content-type": "application/json" } : {}) },
     body: opcoes.body ? JSON.stringify(opcoes.body) : undefined,
   });
   const dados = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(dados.erro ?? "Algo deu errado.");
+  if (!resp.ok) throw new Error(dados.erro ?? "Não consegui falar com o painel. Ele ainda está aberto no PowerShell?");
   return dados;
 }
 
@@ -149,308 +298,575 @@ function avisar(texto) {
   el.textContent = texto;
   el.classList.add("on");
   clearTimeout(timerAviso);
-  timerAviso = setTimeout(() => el.classList.remove("on"), 3500);
+  timerAviso = setTimeout(() => el.classList.remove("on"), 3600);
 }
 
+/* tema */
+function aplicarTema(t) { document.documentElement.dataset.tema = t; }
+aplicarTema(guardado("tema", matchMedia("(prefers-color-scheme: dark)").matches ? "escuro" : "claro"));
+$("#tema").addEventListener("click", () => {
+  const t = document.documentElement.dataset.tema === "escuro" ? "claro" : "escuro";
+  aplicarTema(t); guardar("tema", t);
+});
+
+/* status do topo */
 function quando(iso) {
   if (!iso) return "nunca";
-  const d = new Date(iso);
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const d = new Date(iso), hoje = new Date();
+  const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === hoje.toDateString() ? `hoje, ${hora}` : `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}, ${hora}`;
 }
-
-async function carregarResumo() {
+async function carregarStatus() {
   try {
     const r = await api("resumo");
-    $("#stats").innerHTML = `
-      <span class="stat"><b>${num(r.buscas_ativas)}</b> palavras</span>
-      <span class="stat"><b>${num(r.paginas)}</b> páginas</span>
-      <span class="stat"><b>${num(r.anuncios)}</b> anúncios</span>
-      <span class="stat">última coleta: <b>${esc(quando(r.ultima_coleta?.terminada_em))}</b></span>`;
+    $("#status").innerHTML = `<b>${num(r.paginas)}</b> páginas, última coleta <b>${esc(quando(r.ultima_coleta?.terminada_em))}</b>`;
     const btn = $("#btn-coletar");
     btn.disabled = r.coletando;
     btn.textContent = r.coletando ? "Coletando…" : "Coletar agora";
-    return r;
-  } catch (e) {
-    $("#stats").innerHTML = `<span class="stat" style="color:var(--red)">${esc(e.message)}</span>`;
-  }
+  } catch (e) { $("#status").textContent = e.message; }
 }
-
 $("#btn-coletar").addEventListener("click", async () => {
-  try {
-    await api("coletar", { method: "POST" });
-    avisar("Coleta começou. Leva alguns minutos por palavra; pode continuar usando o painel.");
-    carregarResumo();
-  } catch (e) { avisar(e.message); }
+  try { await api("coletar", { method: "POST" }); avisar("Coleta começou. Pode continuar usando o painel enquanto ela roda."); carregarStatus(); }
+  catch (e) { avisar(e.message); }
 });
 
+/* abas */
 document.querySelectorAll(".aba").forEach((b) => b.addEventListener("click", () => trocarAba(b.dataset.aba)));
 function trocarAba(aba) {
   estado.aba = aba;
+  fecharGaveta();
   if (location.hash !== `#${aba}`) history.replaceState(null, "", `#${aba}`);
   document.querySelectorAll(".aba").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.aba === aba)));
   ({ ofertas: telaOfertas, crescendo: telaCrescendo, novidades: telaNovidades, salvos: telaSalvos, buscas: telaBuscas })[aba]();
 }
 
-function selos(o) {
-  const s = [];
-  if (o.dias_no_ar != null) s.push(`<span class="selo ${o.dias_no_ar >= 60 ? "quente" : ""}">${num(o.dias_no_ar)} dias no ar</span>`);
-  if (o.copias > 1) s.push(`<span class="selo verde">${num(o.copias)} cópias do criativo</span>`);
-  if (o.anuncios_da_pagina > 1) s.push(`<span class="selo">${num(o.anuncios_da_pagina)} anúncios da página</span>`);
-  if (o.destino) s.push(`<span class="selo azul">→ ${esc(o.destino)}</span>`);
-  if (o.formato) s.push(`<span class="selo">${esc(o.formato)}</span>`);
-  if (o.pais) s.push(`<span class="selo">${esc(PAISES[o.pais] ?? o.pais)}</span>`);
-  if (o.botao) s.push(`<span class="selo">Botão: ${esc(o.botao)}</span>`);
-  return s.join("");
+/* ---------- ofertas ---------- */
+async function telaOfertas() {
+  const main = $("#conteudo");
+  if (!estado.opcoes) { try { estado.opcoes = await api("filtros"); } catch { estado.opcoes = { termos: [], nichos: [], paises: [] }; } }
+  const f = estado.f, op = estado.opcoes;
+  const sel = (nome, rotulo, itens, fmt = (x) => x) => `<select class="campo" name="${nome}" aria-label="${rotulo}"><option value="">${rotulo}</option>${itens.map((i) => `<option value="${esc(i)}" ${f[nome] === i ? "selected" : ""}>${esc(fmt(i))}</option>`).join("")}</select>`;
+  main.innerHTML = `
+    <section class="radar" aria-labelledby="radar-titulo">
+      <div class="radar-topo">
+        <h1 id="radar-titulo">Ofertas que começaram a rodar</h1>
+        <span class="sub" id="radar-sub"></span>
+        <div class="acoes-radar">
+          <select class="campo" id="radar-dias" aria-label="Período do radar">
+            ${[14, 30, 60].map((d) => `<option value="${d}" ${estado.radarDias === d ? "selected" : ""}>últimos ${d} dias</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="barras entrando" id="barras" role="group" aria-label="Ofertas por dia em que começaram"></div>
+      <div class="eixo" id="eixo" aria-hidden="true"></div>
+    </section>
+
+    <div class="atalhos" role="group" aria-label="Atalhos">
+      ${ATALHOS.map((a) => `<button class="atalho" data-atalho="${a.id}" aria-pressed="${estado.atalho === a.id}">${a.nome}</button>`).join("")}
+    </div>
+
+    <form class="ferramentas" id="ferramentas" onsubmit="return false">
+      <label class="busca"><span class="sr">Procurar</span>
+        <input type="search" name="q" id="q" placeholder="Procurar na copy ou no nome da página" value="${esc(f.q)}" autocomplete="off"><kbd aria-hidden="true">/</kbd>
+      </label>
+      <select class="campo" name="ordem" aria-label="Ordem">
+        <option value="recentes" ${f.ordem === "recentes" ? "selected" : ""}>Mais novas primeiro</option>
+        <option value="antigos" ${f.ordem === "antigos" ? "selected" : ""}>Mais antigas primeiro</option>
+        <option value="copias" ${f.ordem === "copias" ? "selected" : ""}>Mais cópias do criativo</option>
+        <option value="forca" ${f.ordem === "forca" ? "selected" : ""}>Mais fortes</option>
+        <option value="achados" ${f.ordem === "achados" ? "selected" : ""}>Achadas por último</option>
+      </select>
+      <button type="button" class="btn" id="abrir-filtros" aria-expanded="false" aria-controls="mais-filtros">Filtros<span id="n-filtros"></span></button>
+      <label class="chk"><input type="checkbox" name="lt" ${f.lt === "1" ? "checked" : ""}> só low ticket</label>
+      <label class="chk"><input type="checkbox" name="agora" ${f.agora === "1" ? "checked" : ""}> só no ar agora</label>
+      <div class="vista" role="group" aria-label="Visualização">
+        <button type="button" data-vista="grade" aria-pressed="${estado.vista === "grade"}" title="Grade"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor"/></svg><span class="sr">Grade</span></button>
+        <button type="button" data-vista="lista" aria-pressed="${estado.vista === "lista"}" title="Lista"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="3" rx="1" fill="currentColor"/><rect x="1" y="7" width="14" height="3" rx="1" fill="currentColor"/><rect x="1" y="12" width="14" height="3" rx="1" fill="currentColor"/></svg><span class="sr">Lista</span></button>
+      </div>
+    </form>
+    <div class="mais-filtros" id="mais-filtros">
+      ${sel("nicho", "Todos os nichos", op.nichos)}
+      ${sel("termo", "Todas as palavras", op.termos)}
+      ${sel("pais", "Todos os países", op.paises, (p) => PAISES[p] ?? p)}
+      <select class="campo" name="destino" aria-label="Destino">
+        <option value="">Qualquer destino</option>
+        <option value="mensagem" ${f.destino === "mensagem" ? "selected" : ""}>WhatsApp ou Direct</option>
+        <option value="site" ${f.destino === "site" ? "selected" : ""}>Página de vendas</option>
+      </select>
+      <select class="campo" name="formato" aria-label="Formato">
+        <option value="">Qualquer formato</option>
+        ${["Vídeo", "Imagem", "Carrossel"].map((x) => `<option ${f.formato === x ? "selected" : ""}>${x}</option>`).join("")}
+      </select>
+      <select class="campo" name="max_dias" aria-label="Idade máxima">
+        <option value="">Qualquer idade</option>
+        ${[3, 7, 15, 30, 60].map((d) => `<option value="${d}" ${f.max_dias === String(d) ? "selected" : ""}>começou há até ${d} dias</option>`).join("")}
+      </select>
+    </div>
+    <p class="contagem" id="contagem" aria-live="polite"></p>
+    <div id="resultado"></div>
+    <div class="mais" id="mais"></div>`;
+
+  const form = $("#ferramentas"), extra = $("#mais-filtros");
+  let pausa;
+  const ler = (ev) => {
+    const el = ev.target;
+    if (!el.name) return;
+    f[el.name] = el.type === "checkbox" ? (el.checked ? "1" : "0") : el.value;
+    if (["ordem", "max_dias"].includes(el.name)) estado.atalho = "";
+    marcarAtalhos();
+    clearTimeout(pausa);
+    pausa = setTimeout(() => listar(), el.type === "search" ? 320 : 0);
+  };
+  form.addEventListener("input", ler);
+  extra.addEventListener("input", ler);
+  $("#abrir-filtros").addEventListener("click", (e) => {
+    const aberto = extra.classList.toggle("aberto");
+    e.currentTarget.setAttribute("aria-expanded", String(aberto));
+  });
+  document.querySelectorAll("[data-atalho]").forEach((b) => b.addEventListener("click", () => {
+    const a = ATALHOS.find((x) => x.id === b.dataset.atalho);
+    estado.atalho = a.id;
+    Object.assign(f, a.f, { dia: "" });
+    form.elements.ordem.value = f.ordem;
+    extra.querySelector("[name=max_dias]").value = f.max_dias;
+    marcarAtalhos();
+    desenharRadar();
+    listar();
+  }));
+  document.querySelectorAll("[data-vista]").forEach((b) => b.addEventListener("click", () => {
+    estado.vista = b.dataset.vista; guardar("vista", estado.vista);
+    document.querySelectorAll("[data-vista]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    desenharLista();
+  }));
+  $("#radar-dias").addEventListener("change", (e) => { estado.radarDias = Number(e.target.value); carregarRadar(); });
+  carregarRadar();
+  listar();
 }
 
-function cardOferta(o, comNota = false) {
+function marcarAtalhos() {
+  document.querySelectorAll("[data-atalho]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.atalho === estado.atalho)));
+  const n = ["nicho", "termo", "pais", "destino", "formato", "max_dias"].filter((k) => estado.f[k]).length;
+  const el = $("#n-filtros");
+  if (el) el.textContent = n ? ` (${n})` : "";
+}
+
+let radar = [];
+async function carregarRadar() {
+  try { radar = await api(`radar?dias=${estado.radarDias}&lt=${estado.f.lt}`); } catch { radar = []; }
+  desenharRadar(true);
+}
+function desenharRadar(animar = false) {
+  const barras = $("#barras"), eixo = $("#eixo");
+  if (!barras) return;
+  const max = Math.max(1, ...radar.map((r) => r.ofertas));
+  const total = radar.reduce((s, r) => s + r.ofertas, 0);
+  const semana = radar.slice(-7).reduce((s, r) => s + r.ofertas, 0);
+  $("#radar-sub").textContent = total ? `${num(semana)} na última semana, ${num(total)} no período` : "Nenhuma oferta nova no período ainda";
+  const nomeDia = (d) => new Date(d + "T12:00:00");
+  barras.classList.toggle("entrando", animar);
+  barras.innerHTML = radar.map((r, i) => {
+    const data = nomeDia(r.dia);
+    const rotulo = `${data.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" })}: ${r.ofertas} oferta${r.ofertas === 1 ? "" : "s"}`;
+    const altura = r.ofertas ? Math.max((r.ofertas / max) * 100, 6) : 0;
+    return `<button class="barra-dia" data-dia="${r.dia}" aria-pressed="${estado.f.dia === r.dia}" aria-label="${esc(rotulo)}" title="${esc(rotulo)}" style="--i:${i}">
+      <span class="num">${r.ofertas || ""}</span><span class="col ${r.ofertas ? "cheia" : ""}" style="height:${altura}%"></span></button>`;
+  }).join("");
+  const hoje = new Date().toISOString().slice(0, 10);
+  eixo.innerHTML = radar.map((r) => `<span class="${r.dia === hoje ? "hoje" : ""}">${r.dia === hoje ? "hoje" : nomeDia(r.dia).getDate()}</span>`).join("");
+  barras.querySelectorAll(".barra-dia").forEach((b) => b.addEventListener("click", () => {
+    estado.f.dia = estado.f.dia === b.dataset.dia ? "" : b.dataset.dia;
+    estado.atalho = "";
+    marcarAtalhos();
+    desenharRadar();
+    listar();
+  }));
+}
+
+function parametros(extra = {}) {
+  return new URLSearchParams(Object.entries({ ...estado.f, ...extra }).filter(([, v]) => v !== "" && v != null));
+}
+
+async function listar(maisPagina = false) {
+  const alvo = $("#resultado");
+  if (!alvo) return;
+  if (!maisPagina) {
+    estado.lista = [];
+    alvo.className = estado.vista === "grade" ? "grade" : "lista-ofertas";
+    alvo.innerHTML = Array.from({ length: estado.vista === "grade" ? 6 : 4 }, () => `<div class="esqueleto" style="${estado.vista === "lista" ? "height:96px" : ""}"></div>`).join("");
+  }
+  estado.carregando = true;
+  try {
+    const r = await api(`ofertas?${parametros({ desde: estado.lista.length, limite: 48 })}`);
+    estado.lista = maisPagina ? [...estado.lista, ...r.itens] : r.itens;
+    estado.total = r.total;
+    desenharLista();
+  } catch (e) {
+    alvo.className = "";
+    alvo.innerHTML = `<div class="vazio"><h2>O painel não respondeu</h2><p>${esc(e.message)}</p></div>`;
+  } finally { estado.carregando = false; }
+}
+
+function resumoFiltros() {
+  const f = estado.f, partes = [];
+  if (f.dia) partes.push(`que começaram em ${new Date(f.dia + "T12:00:00").toLocaleDateString("pt-BR")}`);
+  if (f.max_dias) partes.push(`com até ${f.max_dias} dias`);
+  if (f.min_dias) partes.push(`com ${f.min_dias}+ dias`);
+  if (f.min_copias) partes.push(`com ${f.min_copias}+ cópias do criativo`);
+  return partes.join(", ");
+}
+
+function desenharLista() {
+  const alvo = $("#resultado"), mais = $("#mais"), contagem = $("#contagem");
+  if (!alvo) return;
+  const lista = estado.lista;
+  const filtrado = resumoFiltros();
+  contagem.innerHTML = lista.length
+    ? `<b>${num(estado.total)}</b> oferta${estado.total === 1 ? "" : "s"}${filtrado ? ` ${esc(filtrado)}` : ""}. ${filtrado || estado.f.q ? '<button class="limpar" id="limpar">Limpar filtros</button>' : ""}`
+    : "";
+  $("#limpar")?.addEventListener("click", limparFiltros);
+  if (!lista.length) {
+    alvo.className = "";
+    const temFiltro = ["q", "termo", "nicho", "pais", "destino", "formato", "max_dias", "min_dias", "min_copias", "dia"].some((k) => estado.f[k]);
+    alvo.innerHTML = temFiltro
+      ? `<div class="vazio"><h2>Nenhuma oferta com esses filtros</h2><p>Tire algum filtro ou escolha outro dia no radar.</p><p style="margin-top:14px"><button class="btn" id="limpar2">Limpar filtros</button></p></div>`
+      : estado.f.lt === "1"
+        ? `<div class="vazio"><h2>Nenhuma oferta low ticket ainda</h2><p>Rode uma coleta pelo botão <b>Coletar agora</b>, ou desmarque <b>só low ticket</b> pra ver tudo que foi coletado.</p></div>`
+        : `<div class="vazio"><h2>Ainda não tem anúncio aqui</h2><p>Clique em <b>Coletar agora</b>. Cada palavra leva de 30 segundos a 1 minuto.</p></div>`;
+    $("#limpar2")?.addEventListener("click", limparFiltros);
+    mais.innerHTML = "";
+    return;
+  }
+  if (estado.vista === "grade") {
+    alvo.className = "grade";
+    alvo.innerHTML = lista.map((o, i) => cardOferta(o, i)).join("");
+  } else {
+    alvo.className = "lista-ofertas";
+    alvo.innerHTML = lista.map((o, i) => linhaOferta(o, i)).join("");
+  }
+  ligarCards(alvo, lista);
+  mais.innerHTML = lista.length < estado.total ? `<button class="btn" id="carregar-mais">Mostrar mais ${num(Math.min(48, estado.total - lista.length))}</button>` : "";
+  $("#carregar-mais")?.addEventListener("click", () => listar(true));
+}
+
+function limparFiltros() {
+  Object.assign(estado.f, { ...PADRAO, lt: estado.f.lt, agora: estado.f.agora });
+  estado.atalho = "recentes";
+  telaOfertas();
+}
+
+function midiaCard(o) {
   const img = urlSegura(o.imagem_url);
-  const video = urlSegura(o.video_url);
-  const catalogo = /\{\{[^}]+\}\}/.test(o.copy ?? "");
-  const copy = catalogo ? "(anúncio de catálogo, a copy muda pra cada produto)" : (o.copy ?? o.titulo ?? "");
+  return `<div class="sem">Sem prévia</div>${img ? `<img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}`;
+}
+
+function cardOferta(o, i) {
+  const copy = catalogo(o.copy) ? "Anúncio de catálogo: a copy muda pra cada produto." : (o.copy ?? o.titulo ?? "");
   return `
-  <article class="card" data-id="${esc(o.library_id)}">
-    <div class="midia">
-      ${img ? `<img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'vazio',textContent:'Prévia expirada. Abra na Biblioteca.'}))">` : `<div class="vazio">Sem prévia</div>`}
-      ${video ? `<button class="play" data-video="${esc(video)}">▶ Ver vídeo</button>` : ""}
-      <span class="forca" title="Força da oferta: cópias do criativo, dias no ar e anúncios da página">🔥 ${esc(o.forca ?? 0)}</span>
+  <article class="oferta" data-i="${i}" tabindex="0" aria-label="${esc(o.pagina ?? "Oferta")}, ${esc(idadeTexto(o.idade_dias))}">
+    <div class="midia" ${urlSegura(o.video_url) ? `data-video="${esc(o.video_url)}"` : ""}>
+      ${midiaCard(o)}
+      <span class="idade ${nova(o) ? "nova" : ""}">${nova(o) ? "Nova, " : ""}${esc(idadeTexto(o.idade_dias))}</span>
+      <span class="forca" title="Força: cópias do criativo, tempo no ar e anúncios da página">força ${esc(Math.round(o.forca ?? 0))}</span>
+      ${urlSegura(o.video_url) ? `<span class="tem-video">▶ vídeo</span>` : ""}
     </div>
     <div class="corpo">
-      <button class="pag" data-pagina="${esc(o.page_id ?? "")}">${esc(o.pagina ?? "Página sem nome")}</button>
-      <div class="selos">${selos(o)}</div>
-      ${copy ? `<div class="copy">${esc(copy)}</div><button class="mais">ver tudo</button>` : ""}
-      ${o.sinais?.length ? `<div class="sinais" title="Por que o minerador ${o.low_ticket ? "acha que é" : "acha que não é"} low ticket">${o.low_ticket ? "✅" : "⛔"} ${esc(o.sinais.slice(0, 3).join(" · "))}</div>` : ""}
-      ${o.termos?.length ? `<div class="termos">${o.termos.map((t) => `<span class="termo">${esc(t)}</span>`).join("")}</div>` : ""}
-      ${comNota ? `<textarea class="nota" placeholder="Anotação (ex.: modelar o gancho, testar no México…)">${esc(o.nota ?? "")}</textarea>` : ""}
+      <h2 class="pagina-nome">${esc(o.pagina ?? "Página sem nome")}</h2>
+      <div class="fatos">
+        ${o.copias > 1 ? `<span class="fato copias">${num(o.copias)} cópias</span>` : ""}
+        ${o.destino ? `<span class="fato destino">${esc(o.destino)}</span>` : ""}
+        ${o.formato ? `<span class="fato">${esc(o.formato)}</span>` : ""}
+        ${o.pais ? `<span class="fato">${esc(PAISES[o.pais] ?? o.pais)}</span>` : ""}
+      </div>
+      ${copy ? `<p class="copy">${esc(copy)}</p>` : ""}
       <div class="acoes">
-        <button class="btn peq ${o.salvo ? "salvo" : ""}" data-salvar="${o.salvo ? "0" : "1"}">${o.salvo ? "★ Salvo" : "☆ Salvar"}</button>
-        ${urlSegura(o.link_biblioteca) ? `<a class="btn peq" href="${esc(o.link_biblioteca)}" target="_blank" rel="noopener noreferrer">Biblioteca ↗</a>` : ""}
-        ${urlSegura(o.link_url) ? `<a class="btn peq" href="${esc(o.link_url)}" target="_blank" rel="noopener noreferrer">Destino ↗</a>` : ""}
-        ${o.page_id ? `<button class="btn peq" data-ignorar="${esc(o.page_id)}" title="Esconde todos os anúncios dessa página">🚫 Ignorar página</button>` : ""}
+        <button class="btn peq ${o.salvo ? "marcado" : ""}" data-salvar>${o.salvo ? "★ Salvo" : "☆ Salvar"}</button>
+        ${copy && !catalogo(o.copy) ? `<button class="btn peq" data-copiar>Copiar copy</button>` : ""}
       </div>
     </div>
   </article>`;
 }
 
-function ligarCards(raiz, aoMudar) {
-  raiz.querySelectorAll(".play").forEach((b) => b.addEventListener("click", () => {
-    const midia = b.closest(".midia");
-    const v = document.createElement("video");
-    v.src = b.dataset.video; v.controls = true; v.autoplay = true; v.playsInline = true;
-    v.onerror = () => { midia.innerHTML = '<div class="vazio">O link do vídeo expirou. Abra na Biblioteca pra assistir.</div>'; };
-    midia.querySelectorAll("img,.vazio").forEach((x) => x.remove());
-    b.remove();
-    midia.prepend(v);
-  }));
-  raiz.querySelectorAll(".mais").forEach((b) => {
-    const c = b.previousElementSibling;
-    if (c && c.scrollHeight <= c.clientHeight + 2) b.remove();
-  });
-  raiz.querySelectorAll(".mais").forEach((b) => b.addEventListener("click", () => {
-    const c = b.previousElementSibling; c.classList.toggle("aberta");
-    b.textContent = c.classList.contains("aberta") ? "ver menos" : "ver tudo";
-  }));
-  raiz.querySelectorAll(".pag").forEach((b) => b.addEventListener("click", () => b.dataset.pagina && abrirPagina(b.dataset.pagina)));
-  raiz.querySelectorAll("[data-salvar]").forEach((b) => b.addEventListener("click", async () => {
-    const id = b.closest(".card").dataset.id;
-    const salvo = b.dataset.salvar === "1";
-    b.disabled = true;
-    try {
-      const r = await api(`salvar/${encodeURIComponent(id)}`, { method: "POST", body: { salvo } });
-      b.dataset.salvar = salvo ? "0" : "1";
-      b.classList.toggle("salvo", salvo);
-      b.textContent = salvo ? "★ Salvo" : "☆ Salvar";
-      avisar(r.aviso ?? (r.arquivo ? `Salvo. Vídeo baixado em ${r.arquivo}` : salvo ? "Salvo." : "Removido dos salvos."));
-      aoMudar?.();
-    } catch (e) { avisar(e.message); } finally { b.disabled = false; }
-  }));
-  raiz.querySelectorAll("[data-ignorar]").forEach((b) => b.addEventListener("click", async () => {
-    const pagina = b.dataset.ignorar;
-    const nome = b.closest(".card").querySelector(".pag")?.textContent ?? "essa página";
-    try {
-      await api(`ignorar/${encodeURIComponent(pagina)}`, { method: "POST", body: { ignorar: true } });
-      document.querySelectorAll(`[data-ignorar="${CSS.escape(pagina)}"]`).forEach((x) => x.closest(".card")?.remove());
-      avisar(`"${nome}" não aparece mais. Dá pra desfazer na aba Palavras.`);
-    } catch (e) { avisar(e.message); }
-  }));
-  raiz.querySelectorAll("textarea.nota").forEach((t) => t.addEventListener("change", async () => {
-    const id = t.closest(".card").dataset.id;
-    try { await api(`salvar/${encodeURIComponent(id)}`, { method: "POST", body: { salvo: true, nota: t.value } }); avisar("Anotação salva."); }
-    catch (e) { avisar(e.message); }
-  }));
+function linhaOferta(o, i) {
+  const img = urlSegura(o.imagem_url);
+  const copy = catalogo(o.copy) ? "Anúncio de catálogo" : (o.copy ?? o.titulo ?? "");
+  return `
+  <article class="linha-oferta oferta" data-i="${i}" tabindex="0">
+    ${img ? `<img class="mini" src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="mini"></span>`}
+    <div class="meio">
+      <div class="topo-linha">
+        <span class="pagina-nome" style="font-size:16px">${esc(o.pagina ?? "Página sem nome")}</span>
+        <span class="idade-txt ${nova(o) ? "nova" : ""}">${esc(idadeTexto(o.idade_dias))}</span>
+        ${o.copias > 1 ? `<span class="fato copias">${num(o.copias)} cópias</span>` : ""}
+        ${o.destino ? `<span class="fato destino">${esc(o.destino)}</span>` : ""}
+        <span class="fato">força ${esc(Math.round(o.forca ?? 0))}</span>
+      </div>
+      <p class="copy">${esc(copy)}</p>
+    </div>
+    <div class="acoes"><button class="btn peq ${o.salvo ? "marcado" : ""}" data-salvar>${o.salvo ? "★ Salvo" : "☆ Salvar"}</button></div>
+  </article>`;
 }
 
-function vazioColeta() {
-  return `<div class="vazio-g"><h3>Ainda não tem anúncio por aqui</h3>
-    <p>Clique em <b>Coletar agora</b> lá em cima, ou rode <code>minerador coletar</code> no PowerShell.<br>Cada palavra leva de 30 segundos a 1 minuto.</p></div>`;
-}
-
-async function telaOfertas() {
-  const main = $("#conteudo");
-  if (!estado.opcoes) { try { estado.opcoes = await api("filtros"); } catch { estado.opcoes = { termos: [], nichos: [], paises: [] }; } }
-  const f = estado.filtros, op = estado.opcoes;
-  const sel = (nome, rotulo, itens, fmt = (x) => x) => `<select name="${nome}" aria-label="${rotulo}"><option value="">${rotulo}</option>${itens.map((i) => `<option value="${esc(i)}" ${f[nome] === i ? "selected" : ""}>${esc(fmt(i))}</option>`).join("")}</select>`;
-  main.innerHTML = `
-    <form class="filtros" id="filtros" onsubmit="return false">
-      <input type="search" name="q" placeholder="Procurar na copy ou no nome da página…" value="${esc(f.q)}" aria-label="Procurar">
-      ${sel("nicho", "Todos os nichos", op.nichos)}
-      ${sel("termo", "Todas as palavras", op.termos)}
-      ${sel("pais", "Todos os países", op.paises, (p) => PAISES[p] ?? p)}
-      <select name="destino" aria-label="Destino">
-        <option value="">Qualquer destino</option>
-        <option value="mensagem" ${f.destino === "mensagem" ? "selected" : ""}>WhatsApp / Direct</option>
-        <option value="site" ${f.destino === "site" ? "selected" : ""}>Página de vendas</option>
-      </select>
-      <select name="formato" aria-label="Formato">
-        <option value="">Qualquer formato</option>
-        ${["Vídeo", "Imagem", "Carrossel"].map((x) => `<option ${f.formato === x ? "selected" : ""}>${x}</option>`).join("")}
-      </select>
-      <select name="min_dias" aria-label="Tempo no ar">
-        <option value="">Qualquer tempo no ar</option>
-        ${[7, 30, 60, 90].map((d) => `<option value="${d}" ${f.min_dias === String(d) ? "selected" : ""}>${d}+ dias no ar</option>`).join("")}
-      </select>
-      <select name="ordem" aria-label="Ordem">
-        <option value="forca" ${f.ordem === "forca" ? "selected" : ""}>Mais fortes</option>
-        <option value="dias" ${f.ordem === "dias" ? "selected" : ""}>Mais tempo no ar</option>
-        <option value="copias" ${f.ordem === "copias" ? "selected" : ""}>Mais cópias</option>
-        <option value="novos" ${f.ordem === "novos" ? "selected" : ""}>Achados mais recentes</option>
-      </select>
-      <label class="chk"><input type="checkbox" name="lt" ${f.lt === "1" ? "checked" : ""}> só low ticket</label>
-      <label class="chk"><input type="checkbox" name="agora" ${f.agora === "1" ? "checked" : ""}> só no ar agora</label>
-    </form>
-    <div id="resultado" class="carregando">Carregando…</div>`;
-
-  let debounce;
-  $("#filtros").addEventListener("input", (ev) => {
-    const form = ev.currentTarget;
-    for (const el of form.elements) if (el.name) f[el.name] = el.type === "checkbox" ? (el.checked ? "1" : "0") : el.value;
-    clearTimeout(debounce);
-    debounce = setTimeout(listarOfertas, ev.target.type === "search" ? 350 : 0);
-  });
-  listarOfertas();
-}
-
-async function listarOfertas() {
-  const alvo = $("#resultado");
-  if (!alvo) return;
-  const params = new URLSearchParams(Object.entries(estado.filtros).filter(([, v]) => v !== ""));
-  try {
-    const lista = await api(`ofertas?${params}`);
-    if (!lista.length) {
-      const temFiltro = Object.entries(estado.filtros).some(([k, v]) => v && !["ordem", "agora", "lt"].includes(k));
-      alvo.className = "";
-      alvo.innerHTML = temFiltro ? `<div class="vazio-g"><h3>Nada com esses filtros</h3><p>Tente tirar algum filtro.</p></div>`
-        : estado.filtros.lt === "1" ? `<div class="vazio-g"><h3>Nenhuma oferta low ticket ainda</h3><p>Rode uma coleta, ou desmarque <b>só low ticket</b> pra ver tudo que foi coletado.</p></div>` : vazioColeta();
-      return;
+function ligarCards(raiz, lista) {
+  raiz.querySelectorAll(".oferta").forEach((card) => {
+    const i = Number(card.dataset.i);
+    card.addEventListener("click", (e) => { if (!e.target.closest("button, a, textarea")) abrirGaveta(lista, i); });
+    card.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target === card) abrirGaveta(lista, i); });
+    const midia = card.querySelector(".midia[data-video]");
+    if (midia && matchMedia("(hover: hover)").matches) {
+      let video;
+      midia.addEventListener("mouseenter", () => {
+        if (video) { video.play().catch(() => {}); return; }
+        video = Object.assign(document.createElement("video"), { src: midia.dataset.video, muted: true, loop: true, playsInline: true, autoplay: true });
+        video.setAttribute("aria-hidden", "true");
+        video.onerror = () => video.remove();
+        midia.insertBefore(video, midia.querySelector(".idade"));
+      });
+      midia.addEventListener("mouseleave", () => video?.pause());
     }
-    alvo.className = "grade";
-    alvo.innerHTML = lista.map((o) => cardOferta(o)).join("");
-    ligarCards(alvo);
-  } catch (e) { alvo.className = "vazio-g"; alvo.textContent = e.message; }
+  });
+  raiz.querySelectorAll("[data-salvar]").forEach((b) => b.addEventListener("click", () => alternarSalvo(lista[Number(b.closest(".oferta").dataset.i)], b)));
+  raiz.querySelectorAll("[data-copiar]").forEach((b) => b.addEventListener("click", () => copiarCopy(lista[Number(b.closest(".oferta").dataset.i)])));
 }
 
+async function copiarCopy(o) {
+  try { await navigator.clipboard.writeText(o.copy ?? ""); avisar("Copy copiada."); }
+  catch { avisar("O navegador não deixou copiar. Selecione o texto no anúncio aberto."); }
+}
+
+async function alternarSalvo(o, botao) {
+  const salvo = !o.salvo;
+  if (botao) botao.disabled = true;
+  try {
+    const r = await api(`salvar/${encodeURIComponent(o.library_id)}`, { method: "POST", body: { salvo } });
+    o.salvo = salvo;
+    document.querySelectorAll(`.oferta[data-i]`).forEach((c) => {
+      if (estado.lista[Number(c.dataset.i)] === o) c.querySelectorAll("[data-salvar]").forEach((b) => { b.classList.toggle("marcado", salvo); b.textContent = salvo ? "★ Salvo" : "☆ Salvar"; });
+    });
+    if (botao) { botao.classList.toggle("marcado", salvo); botao.textContent = salvo ? "★ Salvo" : "☆ Salvar"; }
+    avisar(r.aviso ?? (r.arquivo ? `Salvo. Vídeo baixado em ${r.arquivo}` : salvo ? "Salvo." : "Removido dos salvos."));
+  } catch (e) { avisar(e.message); } finally { if (botao) botao.disabled = false; }
+}
+
+/* ---------- gaveta do anúncio ---------- */
+let gavetaLista = [];
+function abrirGaveta(lista, i) {
+  gavetaLista = lista;
+  estado.aberto = i;
+  const o = lista[i];
+  if (!o) return;
+  const g = $("#gaveta");
+  const video = urlSegura(o.video_url), img = urlSegura(o.imagem_url);
+  const copy = catalogo(o.copy) ? "" : (o.copy ?? "");
+  g.innerHTML = `
+    <div class="gaveta-topo">
+      <h2 class="titulo" id="gaveta-titulo">${esc(o.pagina ?? "Oferta")}</h2>
+      <button class="btn so-icone" data-nav="-1" aria-label="Anúncio anterior" ${i <= 0 ? "disabled" : ""}>‹</button>
+      <button class="btn so-icone" data-nav="1" aria-label="Próximo anúncio" ${i >= lista.length - 1 ? "disabled" : ""}>›</button>
+      <button class="btn so-icone" id="fechar-gaveta" aria-label="Fechar">✕</button>
+    </div>
+    <div class="gaveta-corpo">
+      <div class="gaveta-midia">
+        ${video ? `<video src="${esc(video)}" controls playsinline ${img ? `poster="${esc(img)}"` : ""} data-img="${esc(img)}"></video>`
+          : img ? `<img src="${esc(img)}" alt="Criativo do anúncio" referrerpolicy="no-referrer">` : `<div class="sem">Sem prévia. Abra na Biblioteca pra ver o criativo.</div>`}
+      </div>
+      <div class="numeros">
+        <div class="numero ${nova(o) ? "nova" : ""}"><b>${o.idade_dias ?? "?"}</b><span>${o.idade_dias === 1 ? "dia no ar" : "dias no ar"}</span></div>
+        <div class="numero"><b>${num(o.copias ?? 1)}</b><span>cópias do criativo</span></div>
+        <div class="numero"><b>${num(o.anuncios_da_pagina)}</b><span>anúncios da página hoje</span></div>
+      </div>
+      <div class="botoes">
+        <button class="btn ${o.salvo ? "marcado" : ""}" id="g-salvar">${o.salvo ? "★ Salvo" : "☆ Salvar"}</button>
+        ${urlSegura(o.link_biblioteca) ? `<a class="btn" href="${esc(o.link_biblioteca)}" target="_blank" rel="noopener noreferrer">Abrir na Biblioteca</a>` : ""}
+        ${urlSegura(o.link_url) ? `<a class="btn" href="${esc(o.link_url)}" target="_blank" rel="noopener noreferrer">Abrir destino</a>` : ""}
+        ${o.page_id ? `<button class="btn" id="g-pagina">Todos da página</button>` : ""}
+      </div>
+      ${copy ? `<div class="secao"><h3>Copy <button class="btn peq" id="g-copiar">Copiar</button></h3><p class="copy-inteira">${esc(copy)}</p></div>` : ""}
+      <div class="secao"><h3>Detalhes</h3>
+        <dl class="detalhes">
+          <dt>Começou</dt><dd>${o.comecou_em ? esc(new Date(o.comecou_em + "T12:00:00").toLocaleDateString("pt-BR")) : "não informado"} (${esc(idadeTexto(o.idade_dias))})</dd>
+          <dt>Leva pra</dt><dd>${esc(o.destino ?? "não informado")}</dd>
+          ${o.botao ? `<dt>Botão</dt><dd>${esc(o.botao)}</dd>` : ""}
+          <dt>Formato</dt><dd>${esc(o.formato ?? "")}</dd>
+          <dt>País</dt><dd>${esc(PAISES[o.pais] ?? o.pais ?? "")}</dd>
+          ${o.plataformas?.length ? `<dt>Aparece em</dt><dd>${esc(o.plataformas.join(", "))}</dd>` : ""}
+          ${o.termos?.length ? `<dt>Achada em</dt><dd>${esc(o.termos.join(", "))}</dd>` : ""}
+          <dt>Força</dt><dd>${esc(o.forca ?? 0)}</dd>
+        </dl>
+      </div>
+      ${o.sinais?.length ? `<div class="secao"><h3>${o.low_ticket ? "Por que parece low ticket" : "Por que não parece low ticket"}</h3><ul class="lista-sinais">${o.sinais.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
+      <div class="secao"><h3>Anotação</h3><textarea class="nota" id="g-nota" placeholder="Ex.: modelar o gancho, testar no México. Salva o anúncio junto.">${esc(o.nota ?? "")}</textarea></div>
+      ${o.page_id ? `<div class="secao"><button class="btn" id="g-ignorar" style="color:var(--perigo)">Ignorar esta página</button></div>` : ""}
+      <p class="dica-teclado">Setas ← → passam de anúncio. Esc fecha.</p>
+    </div>`;
+  const v = g.querySelector(".gaveta-midia video");
+  if (v) v.addEventListener("error", () => {
+    const caixa = v.parentElement;
+    caixa.innerHTML = (v.dataset.img ? `<img src="${esc(v.dataset.img)}" alt="Criativo do anúncio" referrerpolicy="no-referrer">` : "")
+      + `<div class="sem">O link do vídeo expirou. Abra na Biblioteca pra assistir.</div>`;
+  });
+  g.classList.add("aberta");
+  g.setAttribute("aria-hidden", "false");
+  $("#veu").classList.add("aberto");
+  document.body.style.overflow = "hidden";
+  $("#fechar-gaveta").focus();
+  $("#fechar-gaveta").addEventListener("click", fecharGaveta);
+  g.querySelectorAll("[data-nav]").forEach((b) => b.addEventListener("click", () => abrirGaveta(gavetaLista, i + Number(b.dataset.nav))));
+  $("#g-salvar").addEventListener("click", (e) => alternarSalvo(o, e.currentTarget));
+  $("#g-copiar")?.addEventListener("click", () => copiarCopy(o));
+  $("#g-pagina")?.addEventListener("click", () => { fecharGaveta(); abrirPagina(o.page_id); });
+  $("#g-nota").addEventListener("change", async (e) => {
+    try { await api(`salvar/${encodeURIComponent(o.library_id)}`, { method: "POST", body: { salvo: true, nota: e.target.value } }); o.salvo = true; o.nota = e.target.value; avisar("Anotação salva."); }
+    catch (err) { avisar(err.message); }
+  });
+  $("#g-ignorar")?.addEventListener("click", async () => {
+    try {
+      await api(`ignorar/${encodeURIComponent(o.page_id)}`, { method: "POST", body: { ignorar: true } });
+      fecharGaveta();
+      avisar(`${o.pagina ?? "A página"} não aparece mais. Dá pra desfazer na aba Palavras.`);
+      if (estado.aba === "ofertas") { listar(); carregarRadar(); }
+    } catch (e) { avisar(e.message); }
+  });
+}
+function fecharGaveta() {
+  const g = $("#gaveta");
+  if (!g.classList.contains("aberta")) return;
+  g.querySelector("video")?.pause();
+  g.classList.remove("aberta");
+  g.setAttribute("aria-hidden", "true");
+  $("#veu").classList.remove("aberto");
+  document.body.style.overflow = "";
+  document.querySelector(`.oferta[data-i="${estado.aberto}"]`)?.focus();
+}
+$("#veu").addEventListener("click", fecharGaveta);
+document.addEventListener("keydown", (e) => {
+  const gavetaAberta = $("#gaveta").classList.contains("aberta");
+  const digitando = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+  if (e.key === "Escape") { if (gavetaAberta) fecharGaveta(); else fecharPagina(); }
+  if (gavetaAberta && !digitando && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+    const prox = estado.aberto + (e.key === "ArrowRight" ? 1 : -1);
+    if (prox >= 0 && prox < gavetaLista.length) abrirGaveta(gavetaLista, prox);
+  }
+  if (e.key === "/" && !digitando && estado.aba === "ofertas") { e.preventDefault(); $("#q")?.focus(); }
+});
+
+/* ---------- crescendo ---------- */
 async function telaCrescendo() {
   const main = $("#conteudo");
-  main.innerHTML = `<div class="filtros">
-      <label class="chk" for="janela">Crescimento nos últimos</label>
-      <select id="janela" class="campo">${[3, 7, 14, 30].map((d) => `<option value="${d}" ${estado.janela === d ? "selected" : ""}>${d} dias</option>`).join("")}</select>
-      <label class="chk"><input type="checkbox" id="lt" ${estado.filtros.lt === "1" ? "checked" : ""}> só low ticket</label>
-    </div><div id="lista" class="carregando">Carregando…</div>`;
+  main.innerHTML = `
+    <div class="cabeca">
+      <h1>Páginas crescendo</h1>
+      <p>Quantos anúncios cada página tinha nas suas buscas no começo do período e agora. Precisa de coletas em pelo menos dois dias diferentes.</p>
+      <div class="acoes-cabeca">
+        <select id="janela" class="campo" aria-label="Período">${[3, 7, 14, 30].map((d) => `<option value="${d}" ${estado.janela === d ? "selected" : ""}>últimos ${d} dias</option>`).join("")}</select>
+        <label class="chk"><input type="checkbox" id="lt" ${estado.f.lt === "1" ? "checked" : ""}> só low ticket</label>
+      </div>
+    </div>
+    <div id="lista" class="linhas">${'<div class="esqueleto" style="height:66px"></div>'.repeat(4)}</div>`;
   $("#janela").addEventListener("change", (e) => { estado.janela = Number(e.target.value); telaCrescendo(); });
-  $("#lt").addEventListener("change", (e) => { estado.filtros.lt = e.target.checked ? "1" : "0"; telaCrescendo(); });
+  $("#lt").addEventListener("change", (e) => { estado.f.lt = e.target.checked ? "1" : "0"; telaCrescendo(); });
   try {
-    const lista = await api(`crescendo?janela=${estado.janela}&lt=${estado.filtros.lt}`);
+    const lista = await api(`crescendo?janela=${estado.janela}&lt=${estado.f.lt}`);
     const alvo = $("#lista");
-    if (!lista.length) { alvo.className = ""; alvo.innerHTML = vazioColeta(); return; }
-    alvo.className = "lista";
-    alvo.innerHTML = `<p class="chk" style="padding:0">Quantos anúncios cada página tinha nas suas buscas no começo do período e agora. Precisa de pelo menos duas coletas em dias diferentes pra mostrar crescimento.</p>` +
-      lista.map((p, i) => `
+    if (!lista.length) { alvo.innerHTML = `<div class="vazio"><h2>Sem histórico ainda</h2><p>Depois de coletas em dias diferentes, as páginas que mais ganharam anúncios aparecem aqui.</p></div>`; return; }
+    alvo.innerHTML = lista.map((p, i) => `
       <div class="linha">
         <span class="pos">${i + 1}</span>
         ${urlSegura(p.foto_url) ? `<img class="avatar" src="${esc(p.foto_url)}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="avatar"></span>`}
-        <div class="nome"><b>${esc(p.nome ?? "Página sem nome")}</b><small>${num(p.anuncios_antes)} → ${num(p.anuncios_agora)} anúncios${p.mais_antigo_dias ? ` · o mais antigo com ${num(p.mais_antigo_dias)} dias no ar` : ""}</small></div>
-        <span class="cresc ${p.crescimento > 0 ? "" : "zero"}">${p.crescimento > 0 ? `+${num(p.crescimento)}` : p.crescimento < 0 ? num(p.crescimento) : "estável"}</span>
+        <div class="nome"><b>${esc(p.nome ?? "Página sem nome")}</b><small>de ${num(p.anuncios_antes)} pra ${num(p.anuncios_agora)} anúncios${p.mais_antigo_dias ? `, o mais antigo com ${num(p.mais_antigo_dias)} dias` : ""}</small></div>
+        <span class="cresc ${p.crescimento > 0 ? "" : "parado"}">${p.crescimento > 0 ? `+${num(p.crescimento)}` : p.crescimento < 0 ? num(p.crescimento) : "estável"}</span>
         <button class="btn peq" data-pagina="${esc(p.page_id)}">Ver anúncios</button>
       </div>`).join("");
     alvo.querySelectorAll("[data-pagina]").forEach((b) => b.addEventListener("click", () => abrirPagina(b.dataset.pagina)));
-  } catch (e) { $("#lista").textContent = e.message; }
+  } catch (e) { $("#lista").innerHTML = `<div class="vazio"><h2>O painel não respondeu</h2><p>${esc(e.message)}</p></div>`; }
 }
 
+/* ---------- páginas novas ---------- */
 async function telaNovidades() {
   const main = $("#conteudo");
-  main.innerHTML = `<div class="filtros"><label class="chk"><input type="checkbox" id="lt" ${estado.filtros.lt === "1" ? "checked" : ""}> só páginas com oferta low ticket</label></div><div id="lista" class="carregando">Carregando…</div>`;
-  $("#lt").addEventListener("change", (e) => { estado.filtros.lt = e.target.checked ? "1" : "0"; telaNovidades(); });
+  main.innerHTML = `
+    <div class="cabeca">
+      <h1>Páginas novas</h1>
+      <p>Quem apareceu pela primeira vez nas suas palavras nos últimos 3 dias.</p>
+      <div class="acoes-cabeca"><label class="chk"><input type="checkbox" id="lt" ${estado.f.lt === "1" ? "checked" : ""}> só com oferta low ticket</label></div>
+    </div>
+    <div id="lista" class="linhas">${'<div class="esqueleto" style="height:66px"></div>'.repeat(4)}</div>`;
+  $("#lt").addEventListener("change", (e) => { estado.f.lt = e.target.checked ? "1" : "0"; telaNovidades(); });
   try {
-    const lista = await api(`novidades?lt=${estado.filtros.lt}`);
+    const lista = await api(`novidades?lt=${estado.f.lt}`);
     const alvo = $("#lista");
-    if (!lista.length) { alvo.className = ""; alvo.innerHTML = `<div class="vazio-g"><h3>Nenhuma página nova nos últimos 3 dias</h3><p>As páginas que aparecerem pela primeira vez nas suas buscas vão surgir aqui.</p></div>`; return; }
-    alvo.className = "lista";
-    alvo.innerHTML = `<p class="chk" style="padding:0">Páginas que apareceram pela primeira vez nas suas buscas nos últimos 3 dias.</p>` +
-      lista.map((p) => `
+    if (!lista.length) { alvo.innerHTML = `<div class="vazio"><h2>Nenhuma página nova nos últimos 3 dias</h2><p>As próximas coletas trazem as páginas que começarem a anunciar nas suas palavras.</p></div>`; return; }
+    alvo.innerHTML = lista.map((p) => `
       <div class="linha">
         ${urlSegura(p.foto_url) ? `<img class="avatar" src="${esc(p.foto_url)}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="avatar"></span>`}
-        <div class="nome"><b>${esc(p.nome ?? "Página sem nome")}</b><small>vista pela primeira vez em ${esc(quando(p.primeira_vez))}</small></div>
+        <div class="nome"><b>${esc(p.nome ?? "Página sem nome")}</b><small>vista pela primeira vez ${esc(quando(p.primeira_vez))}</small></div>
         <button class="btn peq" data-pagina="${esc(p.page_id)}">Ver anúncios</button>
       </div>`).join("");
     alvo.querySelectorAll("[data-pagina]").forEach((b) => b.addEventListener("click", () => abrirPagina(b.dataset.pagina)));
-  } catch (e) { $("#lista").textContent = e.message; }
+  } catch (e) { $("#lista").innerHTML = `<div class="vazio"><h2>O painel não respondeu</h2><p>${esc(e.message)}</p></div>`; }
 }
 
+/* ---------- salvos ---------- */
 async function telaSalvos() {
   const main = $("#conteudo");
-  main.innerHTML = `<div id="resultado" class="carregando">Carregando…</div>`;
+  main.innerHTML = `
+    <div class="cabeca"><h1>Salvos</h1><p>Seu swipe file. Ao salvar, o vídeo é baixado pro seu PC na pasta Minerador\\videos.</p></div>
+    <div id="resultado" class="grade">${'<div class="esqueleto"></div>'.repeat(3)}</div>`;
   try {
-    const lista = await api("ofertas?salvos=1&agora=0&lt=0&ignoradas=1&ordem=novos&limite=200");
+    const r = await api("ofertas?salvos=1&agora=0&lt=0&ignoradas=1&ordem=achados&limite=200");
     const alvo = $("#resultado");
-    if (!lista.length) { alvo.className = ""; alvo.innerHTML = `<div class="vazio-g"><h3>Nada salvo ainda</h3><p>Clique em <b>☆ Salvar</b> num anúncio pra montar seu swipe file. O vídeo é baixado pro seu PC na hora.</p></div>`; return; }
-    alvo.className = "grade";
-    alvo.innerHTML = lista.map((o) => cardOferta(o, true)).join("");
-    ligarCards(alvo, telaSalvos);
-  } catch (e) { $("#resultado").textContent = e.message; }
+    estado.lista = r.itens;
+    if (!r.itens.length) { alvo.className = ""; alvo.innerHTML = `<div class="vazio"><h2>Nada salvo ainda</h2><p>Clique em <b>☆ Salvar</b> numa oferta pra guardar aqui. Dá pra escrever uma anotação em cada uma.</p></div>`; return; }
+    alvo.innerHTML = r.itens.map((o, i) => cardOferta(o, i)).join("");
+    ligarCards(alvo, r.itens);
+  } catch (e) { $("#resultado").innerHTML = `<div class="vazio"><h2>O painel não respondeu</h2><p>${esc(e.message)}</p></div>`; }
 }
 
+/* ---------- palavras ---------- */
 async function telaBuscas() {
   const main = $("#conteudo");
   main.innerHTML = `
-    <form class="form-busca" id="nova">
-      <input class="campo" name="termo" placeholder="Palavra pra minerar (ex.: moldes de crochê)" required aria-label="Palavra">
+    <div class="cabeca"><h1>Palavras que o minerador acompanha</h1><p>Toda coleta passa por cada palavra ligada. Pause as que não quer agora sem perder o histórico.</p></div>
+    <form class="form-palavra" id="nova">
+      <input class="campo" name="termo" placeholder="Nova palavra, ex.: moldes de crochê" required aria-label="Palavra">
       <select class="campo" name="pais" aria-label="País">${Object.entries(PAISES).map(([c, n]) => `<option value="${c}">${n}</option>`).join("")}</select>
-      <input class="campo" name="nicho" placeholder="Nicho (opcional)" aria-label="Nicho" style="flex:0 1 180px">
-      <button class="btn prim">Adicionar</button>
+      <input class="campo" name="nicho" placeholder="Nicho (opcional)" aria-label="Nicho" style="flex:0 1 190px">
+      <button class="btn forte">Adicionar palavra</button>
     </form>
-    <div id="lista" class="carregando">Carregando…</div>
-    <h3 style="margin:28px 0 10px">🚫 Páginas ignoradas</h3>
-    <div id="ignoradas" class="lista"></div>`;
-  carregarIgnoradas();
+    <div id="lista" class="linhas"></div>
+    <h2 class="sub-secao">Páginas ignoradas</h2>
+    <div id="ignoradas" class="linhas"></div>`;
   $("#nova").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const d = Object.fromEntries(new FormData(ev.currentTarget));
     try { await api("buscas", { method: "POST", body: d }); estado.opcoes = null; avisar(`"${d.termo}" adicionada. Entra na próxima coleta.`); telaBuscas(); }
     catch (e) { avisar(e.message); }
   });
+  carregarIgnoradas();
   try {
     const lista = await api("buscas");
     const alvo = $("#lista");
-    alvo.className = "lista";
     alvo.innerHTML = lista.map((b) => `
       <div class="linha" data-id="${b.id}">
         <button class="interruptor" role="switch" aria-checked="${b.ativa}" aria-label="Minerar ${esc(b.termo)}"></button>
-        <div class="nome"><b>${esc(b.termo)}</b><small>${esc(PAISES[b.pais] ?? b.pais)}${b.nicho ? ` · ${esc(b.nicho)}` : ""}${b.ativa ? "" : " · pausada"}</small></div>
+        <div class="nome"><b>${esc(b.termo)}</b><small>${esc(PAISES[b.pais] ?? b.pais)}${b.nicho ? `, ${esc(b.nicho)}` : ""}${b.ativa ? "" : ", pausada"}</small></div>
         <button class="btn peq" data-apagar>Remover</button>
-      </div>`).join("") || `<div class="vazio-g">Nenhuma palavra ainda.</div>`;
+      </div>`).join("") || `<div class="vazio"><h2>Nenhuma palavra ainda</h2><p>Adicione a primeira aqui em cima.</p></div>`;
     alvo.querySelectorAll(".interruptor").forEach((s) => s.addEventListener("click", async () => {
-      const id = s.closest(".linha").dataset.id;
-      const ativa = s.getAttribute("aria-checked") !== "true";
-      try { await api(`buscas/${id}`, { method: "PATCH", body: { ativa } }); s.setAttribute("aria-checked", String(ativa)); carregarResumo(); }
-      catch (e) { avisar(e.message); }
+      const linha = s.closest(".linha"), ativa = s.getAttribute("aria-checked") !== "true";
+      try {
+        await api(`buscas/${linha.dataset.id}`, { method: "PATCH", body: { ativa } });
+        s.setAttribute("aria-checked", String(ativa));
+        const small = linha.querySelector("small");
+        small.textContent = ativa ? small.textContent.replace(/, pausada$/, "") : `${small.textContent}, pausada`;
+      } catch (e) { avisar(e.message); }
     }));
     alvo.querySelectorAll("[data-apagar]").forEach((b) => b.addEventListener("click", async () => {
       const linha = b.closest(".linha");
       if (!confirm("Remover essa palavra? O histórico dela também sai do painel.")) return;
-      try { await api(`buscas/${linha.dataset.id}`, { method: "DELETE" }); estado.opcoes = null; linha.remove(); carregarResumo(); }
+      try { await api(`buscas/${linha.dataset.id}`, { method: "DELETE" }); estado.opcoes = null; linha.remove(); }
       catch (e) { avisar(e.message); }
     }));
-  } catch (e) { $("#lista").textContent = e.message; }
+  } catch (e) { $("#lista").innerHTML = `<div class="vazio"><h2>O painel não respondeu</h2><p>${esc(e.message)}</p></div>`; }
 }
 
 async function carregarIgnoradas() {
@@ -460,57 +876,68 @@ async function carregarIgnoradas() {
     const lista = await api("ignoradas");
     alvo.innerHTML = lista.length ? lista.map((p) => `
       <div class="linha">
-        <div class="nome"><b>${esc(p.nome ?? p.page_id)}</b><small>ignorada em ${esc(quando(p.criada_em))}</small></div>
+        <div class="nome"><b>${esc(p.nome ?? p.page_id)}</b><small>ignorada ${esc(quando(p.criada_em))}</small></div>
         <button class="btn peq" data-voltar="${esc(p.page_id)}">Voltar a mostrar</button>
-      </div>`).join("") : `<p class="chk" style="padding:0">Nenhuma. Use o botão 🚫 Ignorar página num anúncio pra esconder uma loja ou marca de vez.</p>`;
+      </div>`).join("") : `<p style="color:var(--cinza);margin:0">Nenhuma. Pra esconder uma loja ou marca de vez, abra um anúncio dela e use <b>Ignorar esta página</b>.</p>`;
     alvo.querySelectorAll("[data-voltar]").forEach((b) => b.addEventListener("click", async () => {
-      try { await api(`ignorar/${encodeURIComponent(b.dataset.voltar)}`, { method: "POST", body: { ignorar: false } }); carregarIgnoradas(); }
+      try { await api(`ignorar/${encodeURIComponent(b.dataset.voltar)}`, { method: "POST", body: { ignorar: false } }); carregarIgnoradas(); avisar("A página voltou a aparecer."); }
       catch (e) { avisar(e.message); }
     }));
   } catch (e) { alvo.textContent = e.message; }
 }
 
+/* ---------- página de um anunciante ---------- */
 function graficoDias(dias) {
-  if (!dias.length) return `<p class="chk">Sem histórico ainda.</p>`;
+  if (!dias.length) return `<p style="color:var(--cinza)">Sem histórico ainda.</p>`;
   const max = Math.max(...dias.map((d) => d.anuncios), 1);
-  const w = 1000, h = 140, gap = 6, bw = Math.max(Math.min((w - gap * dias.length) / dias.length, 60), 4);
-  const barras = dias.map((d, i) => {
-    const bh = Math.max((d.anuncios / max) * (h - 30), 2);
-    const x = i * (bw + gap);
-    const rotulo = new Date(d.dia + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-    return `<rect x="${x}" y="${h - 18 - bh}" width="${bw}" height="${bh}" rx="3" fill="var(--accent)"><title>${rotulo}: ${d.anuncios} anúncios</title></rect>
-      <text x="${x + bw / 2}" y="${h - 4}" font-size="11" text-anchor="middle" fill="var(--muted)">${rotulo}</text>
-      <text x="${x + bw / 2}" y="${h - 22 - bh}" font-size="11" text-anchor="middle" fill="var(--text)">${d.anuncios}</text>`;
-  }).join("");
-  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMinYMid meet" role="img" aria-label="Anúncios vistos por dia">${barras}</svg>`;
+  const w = 1000, h = 150, gap = 8, bw = Math.max(Math.min((w - gap * dias.length) / dias.length, 70), 6);
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMinYMid meet" role="img" aria-label="Anúncios vistos por dia">${dias.map((d, i) => {
+    const bh = Math.max((d.anuncios / max) * (h - 36), 3), x = i * (bw + gap);
+    const rot = new Date(d.dia + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    return `<rect x="${x}" y="${h - 20 - bh}" width="${bw}" height="${bh}" rx="4" fill="var(--menta)"><title>${rot}: ${d.anuncios} anúncios</title></rect>
+      <text x="${x + bw / 2}" y="${h - 4}" font-size="13" text-anchor="middle" fill="var(--cinza)">${rot}</text>
+      <text x="${x + bw / 2}" y="${h - 26 - bh}" font-size="14" font-weight="700" text-anchor="middle" fill="var(--tinta)">${d.anuncios}</text>`;
+  }).join("")}</svg>`;
 }
 
 async function abrirPagina(id) {
-  const fundo = $("#fundo"), modal = $("#modal");
-  modal.innerHTML = `<div class="carregando">Carregando…</div>`;
+  const fundo = $("#modal-pagina"), caixa = $("#modal-caixa");
+  caixa.innerHTML = `<div class="esqueleto" style="height:200px"></div>`;
   fundo.classList.add("aberto");
+  document.body.style.overflow = "hidden";
   try {
     const { pagina, dias, anuncios } = await api(`pagina/${encodeURIComponent(id)}`);
-    modal.innerHTML = `
-      <div class="modal-topo">
+    caixa.innerHTML = `
+      <div class="cabeca">
         ${urlSegura(pagina.foto_url) ? `<img class="avatar" src="${esc(pagina.foto_url)}" alt="" referrerpolicy="no-referrer">` : ""}
-        <h2 id="modal-titulo">${esc(pagina.nome ?? "Página")}</h2>
-        ${urlSegura(pagina.url) ? `<a class="btn peq" href="${esc(pagina.url)}" target="_blank" rel="noopener noreferrer">Página ↗</a>` : ""}
-        <a class="btn peq" href="https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=ALL&view_all_page_id=${encodeURIComponent(pagina.page_id)}&search_type=page" target="_blank" rel="noopener noreferrer">Todos na Biblioteca ↗</a>
-        <button class="btn peq" id="fechar" aria-label="Fechar">✕</button>
+        <h1 id="pagina-titulo">${esc(pagina.nome ?? "Página")}</h1>
+        <div class="acoes-cabeca">
+          ${urlSegura(pagina.url) ? `<a class="btn peq" href="${esc(pagina.url)}" target="_blank" rel="noopener noreferrer">Abrir página</a>` : ""}
+          <a class="btn peq" href="https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=ALL&view_all_page_id=${encodeURIComponent(pagina.page_id)}&search_type=page" target="_blank" rel="noopener noreferrer">Todos na Biblioteca</a>
+          <button class="btn peq" id="fechar-pagina" aria-label="Fechar">✕</button>
+        </div>
       </div>
-      <div class="grafico"><b>Anúncios vistos por dia nas suas buscas</b>${graficoDias(dias)}</div>
-      <div class="grade" id="anuncios-pagina">${anuncios.map((o) => cardOferta(o)).join("")}</div>`;
-    ligarCards($("#anuncios-pagina"));
-    $("#fechar").addEventListener("click", fecharModal);
-  } catch (e) { modal.innerHTML = `<p>${esc(e.message)}</p><button class="btn" id="fechar">Fechar</button>`; $("#fechar").addEventListener("click", fecharModal); }
+      <div class="grafico"><h3 style="font:700 15px var(--titulo);margin:0 0 6px">Anúncios vistos por dia nas suas buscas</h3>${graficoDias(dias)}</div>
+      <div class="grade" id="anuncios-pagina">${anuncios.map((o, i) => cardOferta(o, i)).join("")}</div>`;
+    ligarCards($("#anuncios-pagina"), anuncios);
+    $("#fechar-pagina").addEventListener("click", fecharPagina);
+    $("#fechar-pagina").focus();
+  } catch (e) {
+    caixa.innerHTML = `<div class="vazio"><h2>Não consegui abrir essa página</h2><p>${esc(e.message)}</p><p style="margin-top:14px"><button class="btn" id="fechar-pagina">Fechar</button></p></div>`;
+    $("#fechar-pagina").addEventListener("click", fecharPagina);
+  }
 }
-function fecharModal() { $("#fundo").classList.remove("aberto"); }
-$("#fundo").addEventListener("click", (e) => { if (e.target.id === "fundo") fecharModal(); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModal(); });
+function fecharPagina() {
+  const fundo = $("#modal-pagina");
+  if (!fundo.classList.contains("aberto")) return;
+  fundo.classList.remove("aberto");
+  document.body.style.overflow = "";
+}
+$("#modal-pagina").addEventListener("click", (e) => { if (e.target.id === "modal-pagina") fecharPagina(); });
 
-carregarResumo();
-setInterval(carregarResumo, 15000);
+/* início */
+carregarStatus();
+setInterval(carregarStatus, 15000);
 const abaInicial = location.hash.slice(1);
 trocarAba(["ofertas", "crescendo", "novidades", "salvos", "buscas"].includes(abaInicial) ? abaInicial : "ofertas");
 </script>
