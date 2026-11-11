@@ -301,7 +301,6 @@ painel/           a página do painel
 supabase/         estrutura do banco (pra recriar em outro projeto)
 packages/nucleo/  o núcleo que transforma as ferramentas em comandos e no servidor do Claude
 tests/            testes automáticos (npm test)
-licenses/         avisos de licença dos componentes
 ```
 
 </details>
@@ -310,7 +309,7 @@ licenses/         avisos de licença dos componentes
 
 <div align="center">
 
-Feito por **Rafael Marutaka** · Licença MIT
+Feito por **Rafael Marutaka**
 
 <sub>Não tem ligação com a Meta Platforms, Inc.</sub>
 
